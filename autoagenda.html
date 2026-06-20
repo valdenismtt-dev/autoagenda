@@ -920,12 +920,13 @@
     }
 
     function getAuth() {
-      let auth = localStorage.getItem(AUTH_KEY);
-      if (!auth) {
-        auth = JSON.stringify({ user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva' });
-        localStorage.setItem(AUTH_KEY, auth);
+      let authStr = localStorage.getItem(AUTH_KEY);
+      if (!authStr) {
+        const def = { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false };
+        localStorage.setItem(AUTH_KEY, JSON.stringify(def));
+        return def;
       }
-      try { return JSON.parse(auth); } catch(e) { return { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva' }; }
+      try { return JSON.parse(authStr); } catch(e) { return { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false }; }
     }
     function saveAuth(auth) { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); }
 
@@ -955,6 +956,7 @@
           const auth = getAuth();
           auth.user = user.email;
           auth.nome = user.displayName || user.email;
+          auth.authenticated = true;
           saveAuth(auth);
           document.getElementById('sidebarUserName').textContent = auth.nome;
           const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
@@ -974,6 +976,7 @@
       const pass = document.getElementById('loginPass').value;
       const auth = getAuth();
       if (user === auth.user && pass === auth.pass) {
+        auth.authenticated = true; saveAuth(auth);
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('loginError').style.display = 'none';
         if (auth.nome) {
@@ -990,6 +993,7 @@
     }
 
     function doLogout() {
+      const auth = getAuth(); auth.authenticated = false; saveAuth(auth);
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('loginUser').value = '';
       document.getElementById('loginPass').value = '';
@@ -1707,8 +1711,7 @@
 
     // ===== SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
     }
 
     // ===== LOGIN EVENTS =====
@@ -1793,6 +1796,10 @@
         document.getElementById('sidebarUserName').textContent = auth.nome;
         const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
         document.querySelector('#sidebarUser .avatar').textContent = initials;
+      }
+      if (auth.authenticated) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        initApp();
       }
       // Init Firebase if configured
       if (getFirebaseConfig()) {
