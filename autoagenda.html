@@ -907,16 +907,17 @@
     async function dbSyncFromFirebase() {
       if (!isFirebaseReady()) return;
       try {
-        const alunos = await dbGetAlunos();
-        const agendamentos = await dbGetAgendamentos();
-        if (alunos.length || agendamentos.length) {
-          data.alunos = alunos;
-          data.agendamentos = agendamentos;
-          data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter);
-          data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter);
-          saveData();
+        const localCount = data.alunos.length + data.agendamentos.length;
+        if (localCount === 0) {
+          const alunos = await dbGetAlunos();
+          const agendamentos = await dbGetAgendamentos();
+          if (alunos.length || agendamentos.length) {
+            data.alunos = alunos; data.agendamentos = agendamentos;
+            data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter);
+            data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter);
+            saveData();
+          }
         } else {
-          // First sync: push local data to Firebase
           await dbSaveAlunos(data.alunos);
           await dbSaveAgendamentos(data.agendamentos);
         }
