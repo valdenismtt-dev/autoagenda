@@ -272,29 +272,22 @@
     .month-calendar .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
     .month-calendar .mc-day {
       border: 1px solid var(--border); border-radius: var(--radius-sm);
-      min-height: 80px; padding: 6px; cursor: pointer;
+      min-height: 60px; padding: 4px; cursor: pointer;
       transition: all var(--transition);
       display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
     }
     .month-calendar .mc-day:hover { border-color: var(--primary); background: var(--primary-light); }
     .month-calendar .mc-day.other-month { opacity: 0.35; }
     .month-calendar .mc-day.today { border-color: var(--primary); background: var(--primary-light); }
-    .month-calendar .mc-day .mc-num { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-    .month-calendar .mc-day .mc-lessons { display: flex; flex-direction: column; gap: 2px; }
-    .month-calendar .mc-day .mc-lesson {
-      font-size: 10px; padding: 1px 4px; border-radius: 3px;
-      display: flex; align-items: center; gap: 3px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .month-calendar .mc-day .mc-lesson.carro { background: var(--car-bg); color: var(--car); }
-    .month-calendar .mc-day .mc-lesson.moto { background: var(--moto-bg); color: var(--moto); }
-    .month-calendar .mc-day .mc-count {
-      font-size: 11px; color: var(--text-secondary); margin-top: auto;
-      padding-top: 4px;
+    .month-calendar .mc-day .mc-num { font-size: 15px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
+    .month-calendar .mc-day .mc-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--primary); color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 999px; min-width: 16px; height: 16px; padding: 0 4px;
     }
     @media (max-width: 600px) {
-      .month-calendar .mc-day { min-height: 60px; padding: 4px; }
-      .month-calendar .mc-day .mc-lesson { font-size: 9px; }
+      .month-calendar .mc-day { min-height: 44px; padding: 3px; }
     }
 
     .slot {
@@ -1300,7 +1293,6 @@
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const daysInPrev = new Date(year, month, 0).getDate();
 
-      // Get all appointments for this month
       const monthStart = new Date(year, month, 1);
       const monthEnd = new Date(year, month + 1, 1);
       const monthAg = data.agendamentos.filter(a => {
@@ -1308,7 +1300,6 @@
         return ad >= monthStart && ad < monthEnd;
       });
 
-      // Group by day
       const byDay = {};
       monthAg.forEach(a => {
         const day = parseDate(a.data).getDate();
@@ -1316,7 +1307,6 @@
         byDay[day].push(a);
       });
 
-      const icons = getCatIcon(9);
       const todayStrLocal = formatDateStr(new Date());
 
       let html = '<div class="month-calendar">';
@@ -1324,44 +1314,26 @@
       ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(d => html += `<div>${d}</div>`);
       html += '</div><div class="mc-grid">';
 
-      // Previous month days
       for (let i = firstDay - 1; i >= 0; i--) {
         const d = daysInPrev - i;
-        html += `<div class="mc-day other-month"><div class="mc-num" style="color:var(--text-secondary);">${d}</div></div>`;
+        html += `<div class="mc-day other-month"><div class="mc-num">${d}</div></div>`;
       }
 
-      // Current month days
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const isToday = dateStr === todayStrLocal;
         const aulas = byDay[d] || [];
         const count = aulas.length;
 
-        let lessonsHtml = '';
-        if (count > 0) {
-          lessonsHtml = '<div class="mc-lessons">';
-          aulas.slice(0, 3).forEach(a => {
-            const aluno = getAluno(a.alunoId);
-            if (!aluno) return;
-            const catKey = a.categoria || aluno.categorias[0];
-            lessonsHtml += `<div class="mc-lesson ${catKey}">${icons[catKey]} ${a.horario} ${aluno.nome}</div>`;
-          });
-          if (count > 3) lessonsHtml += `<div class="mc-count">+${count - 3} mais</div>`;
-          lessonsHtml += '</div>';
-        }
-
         html += `<div class="mc-day ${isToday ? 'today' : ''}" onclick="selectMonthDay('${dateStr}')">
-          <div class="mc-num">${d}</div>
-          ${lessonsHtml}
-          ${count === 0 && !isToday ? '<div class="mc-count" style="color:var(--text-secondary);font-size:10px;">—</div>' : ''}
+          <div class="mc-num">${d}${count > 0 ? ` <span class="mc-badge">${count}</span>` : ''}</div>
         </div>`;
       }
 
-      // Fill remaining cells
       const totalCells = firstDay + daysInMonth;
       const remaining = (7 - (totalCells % 7)) % 7;
       for (let i = 1; i <= remaining; i++) {
-        html += `<div class="mc-day other-month"><div class="mc-num" style="color:var(--text-secondary);">${i}</div></div>`;
+        html += `<div class="mc-day other-month"><div class="mc-num">${i}</div></div>`;
       }
 
       html += '</div></div>';
