@@ -854,28 +854,26 @@
     }
     async function dbSaveAlunos(alunos) {
       if (isFirebaseReady()) {
-        const batch = firebaseDb.batch();
-        alunos.forEach(a => { batch.set(firebaseDb.collection('alunos').doc(String(a.id)), a); });
-        await batch.commit();
+        try { const batch = firebaseDb.batch(); alunos.forEach(a => { batch.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); await batch.commit(); } catch(e) { console.warn('Firebase save batch error:', e); }
       }
       data.alunos = alunos; saveData();
     }
     async function dbAddAluno(aluno) {
       if (isFirebaseReady()) {
-        await firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno);
+        try { await firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno); } catch(e) { console.warn('Firebase save error:', e); }
       }
       data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
     }
     async function dbUpdateAluno(id, updates) {
       if (isFirebaseReady()) {
-        await firebaseDb.collection('alunos').doc(String(id)).update(updates);
+        try { await firebaseDb.collection('alunos').doc(String(id)).update(updates); } catch(e) { console.warn('Firebase update error:', e); }
       }
       const idx = data.alunos.findIndex(a => a.id === id);
       if (idx > -1) { Object.assign(data.alunos[idx], updates); saveData(); }
     }
     async function dbDeleteAluno(id) {
       if (isFirebaseReady()) {
-        await firebaseDb.collection('alunos').doc(String(id)).delete();
+        try { await firebaseDb.collection('alunos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete error:', e); }
       }
       data.alunos = data.alunos.filter(a => a.id !== id); saveData();
     }
@@ -889,21 +887,19 @@
     }
     async function dbSaveAgendamentos(agendamentos) {
       if (isFirebaseReady()) {
-        const batch = firebaseDb.batch();
-        agendamentos.forEach(a => { batch.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); });
-        await batch.commit();
+        try { const batch = firebaseDb.batch(); agendamentos.forEach(a => { batch.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); await batch.commit(); } catch(e) { console.warn('Firebase save batch error:', e); }
       }
       data.agendamentos = agendamentos; saveData();
     }
     async function dbAddAgendamento(ag) {
       if (isFirebaseReady()) {
-        await firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag);
+        try { await firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag); } catch(e) { console.warn('Firebase save agendamento error:', e); }
       }
       data.agendamentos.push(ag); data.agendamentoIdCounter = Math.max(data.agendamentoIdCounter, ag.id + 1); saveData();
     }
     async function dbDeleteAgendamento(id) {
       if (isFirebaseReady()) {
-        await firebaseDb.collection('agendamentos').doc(String(id)).delete();
+        try { await firebaseDb.collection('agendamentos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete agendamento error:', e); }
       }
       data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
     }
