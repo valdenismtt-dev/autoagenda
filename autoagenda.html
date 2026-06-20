@@ -570,6 +570,32 @@
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
       .filter-bar .input-wrapper { width: 100%; }
       .stat-card { padding: 12px 14px; }
+      .login-card { padding: 28px 20px 24px; }
+      .modal { width: calc(100vw - 16px); max-height: 90vh; overflow-y: auto; }
+      .modal-body { padding: 16px; }
+      .modal-header { padding: 16px 16px 0; }
+      .modal-header h2 { font-size: 16px; }
+      .student-list-radio { max-height: 180px; }
+      .student-radio-item { padding: 12px; min-height: 48px; }
+      .student-radio-item .radio-circle { width: 22px; height: 22px; }
+      .form-input, .form-select { padding: 12px; font-size: 16px; }
+      .btn { padding: 12px 20px; font-size: 14px; min-height: 44px; }
+      .slot { padding: 12px; }
+      .slot:hover { background: var(--card); }
+      .slot-time { font-size: 13px; }
+      .slot-content-name { font-size: 14px; }
+      .page-header { padding: 16px 16px 0; }
+      .stats-bar { margin: 10px 16px 0; gap: 8px; }
+      .filter-bar { margin: 10px 16px 0; }
+      .day-selector { margin: 10px 16px 0; }
+      .schedule { margin: 10px 16px 0; }
+      .page-content { padding: 12px 16px 90px; }
+      .table-wrap { overflow-x: auto; }
+      .alunos-table th, .alunos-table td { padding: 10px 12px; white-space: nowrap; }
+      .alunos-table .progress-bar { width: 60px; }
+      .sidebar-logo span { font-size: 18px; }
+      .fab { width: 52px; height: 52px; bottom: calc(var(--bottom-h) + 12px); right: 12px; }
+      .fab svg { width: 22px; height: 22px; }
     }
   </style>
 </head>
@@ -1516,20 +1542,24 @@
     function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
     async function confirmAppointment(alunoId, categoria, horario) {
-      if (isHorarioInPast(state.selectedDate, horario)) { showToast('Horário já passou.', 'error'); closeModal(); return; }
-      const exists = data.agendamentos.some(a => a.data === state.selectedDate && a.horario === horario);
-      if (exists) { showToast('Este horário já está agendado.', 'error'); return; }
+      try {
+        if (isHorarioInPast(state.selectedDate, horario)) { showToast('Horário já passou.', 'error'); closeModal(); return; }
+        const exists = data.agendamentos.some(a => a.data === state.selectedDate && a.horario === horario);
+        if (exists) { showToast('Este horário já está agendado.', 'error'); return; }
 
-      const novo = { id: data.agendamentoIdCounter++, alunoId, categoria, data: state.selectedDate, horario, status: 'confirmado' };
-      await dbAddAgendamento(novo);
+        const novo = { id: data.agendamentoIdCounter++, alunoId, categoria, data: state.selectedDate, horario, status: 'confirmado' };
+        await dbAddAgendamento(novo);
 
-      const aluno = getAluno(alunoId);
-      const catLabel = aluno ? CATEGORIES[categoria] : '';
-      if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; aluno.aulasFeitas[categoria] = Math.min(aluno.aulasFeitas[categoria] + 1, aluno.totalAulas[categoria]||20); await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
+        const aluno = getAluno(alunoId);
+        const catLabel = aluno ? CATEGORIES[categoria] : '';
+        if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; aluno.aulasFeitas[categoria] = Math.min(aluno.aulasFeitas[categoria] + 1, aluno.totalAulas[categoria]||20); await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
 
-      closeModal();
-      showToast(`Aula de ${catLabel} agendada com ${aluno?aluno.nome:''} às ${horario}`, 'success');
-      renderSchedule(); renderDaySelector(); updateStats();
+        closeModal();
+        showToast(`Aula de ${catLabel} agendada com ${aluno?aluno.nome:''} às ${horario}`, 'success');
+        renderSchedule(); renderDaySelector(); updateStats();
+      } catch(e) {
+        showToast('Erro ao agendar aula: ' + e.message, 'error');
+      }
     }
 
     // ===== FAB =====
