@@ -291,11 +291,11 @@
     }
 
     .slot {
-      display: flex; align-items: center; gap: 16px;
+      display: flex; align-items: center; gap: 12px;
       background: var(--card); border: 1px solid var(--border);
       border-radius: var(--radius-card); padding: 14px 20px;
       box-shadow: var(--shadow);
-      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+      transition: all var(--transition);
       animation: slotIn 0.25s ease-out;
     }
     @keyframes slotIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -305,23 +305,24 @@
     .slot.available .slot-content-text { color: #9CA3AF; font-size: 13px; }
     .slot.lunch { background: var(--hover); border-color: var(--border); cursor: default; }
     .slot.lunch .slot-content-text { color: var(--text-secondary); font-size: 13px; }
-    .slot.now { border-left: 3px solid var(--primary); background: var(--primary-light); }
-    .dark .slot.now { background: #1E3A5F; }
+    .slot.occupied.carro { border-left: 5px solid var(--car); background: linear-gradient(135deg, var(--card) 0%, var(--car-bg) 60%); }
+    .slot.occupied.moto { border-left: 5px solid var(--moto); background: linear-gradient(135deg, var(--card) 0%, var(--moto-bg) 60%); }
+    .slot.now { box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
     .slot-time {
       font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-      font-size: 13px; font-weight: 600; color: var(--text);
+      font-size: 15px; font-weight: 700; color: var(--text);
       min-width: 44px; flex-shrink: 0;
     }
-    .slot-icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-secondary); }
-    .slot-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    .slot-content-row { display: flex; align-items: center; gap: 8px; }
-    .slot-content-name { font-weight: 600; font-size: 14px; color: var(--text); }
+    .slot-content { flex: 1; display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+    .slot-content-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .slot-content-name { font-weight: 700; font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .slot-content-sub { font-size: 12px; color: var(--text-secondary); }
-    .slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-    .slot-right .wa-status { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
-    .slot-right .wa-status .wa-sent { color: var(--success); }
+    .slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .slot-right .wa-status { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+    .slot-right .wa-status.sent { color: var(--success); }
     .slot-right .wa-status svg { width: 13px; height: 13px; }
-    .slot-actions { display: flex; align-items: center; gap: 4px; }
+    .slot-actions { display: flex; align-items: center; gap: 4px; opacity: 0.5; transition: opacity var(--transition); }
+    .slot:active .slot-actions, .slot:hover .slot-actions { opacity: 1; }
     .slot-actions button {
       border: none; background: transparent; cursor: pointer;
       padding: 4px; border-radius: 4px; color: var(--text-secondary);
@@ -330,6 +331,13 @@
     .slot-actions button:hover { color: var(--danger); background: var(--danger-bg); }
     .slot-actions button svg { width: 15px; height: 15px; }
     .slot-actions .wa-btn:hover { color: var(--primary); background: var(--primary-light); }
+    .slot-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .slot-badge.carro { background: var(--car-bg); color: var(--car); }
+    .slot-badge.moto { background: var(--moto-bg); color: var(--moto); }
 
     /* FAB */
     .fab {
@@ -557,16 +565,12 @@
     }
     @media (min-width: 1024px) { .menu-toggle { display: none !important; } .sidebar { transform: translateX(0) !important; } }
     @media (max-width: 600px) {
-      .slot { gap: 4px; padding: 8px; flex-wrap: nowrap; }
-      .slot:hover { background: var(--card); }
-      .slot-time { font-size: 11px; flex: 0 0 38px; }
-      .slot-content-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .slot-content-row { min-width: 0; }
-      .slot-content-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .slot-right { flex-direction: row; align-items: center; gap: 4px; flex-shrink: 0; width: auto; }
-      .slot-right .wa-status { font-size: 10px; gap: 3px; }
-      .slot-actions button { width: 28px; height: 28px; }
-      .slot-actions button svg { width: 13px; height: 13px; }
+      .slot { gap: 6px; padding: 10px 12px; flex-wrap: nowrap; }
+      .slot-time { font-size: 13px; min-width: 36px; }
+      .slot-content-name { font-size: 14px; }
+      .slot-content-sub { font-size: 11px; }
+      .slot-right { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; width: auto; }
+      .slot-right .wa-status { font-size: 11px; gap: 3px; }
       .alunos-table th:nth-child(4), .alunos-table td:nth-child(4) { display: none; }
       .alunos-table th, .alunos-table td { padding: 8px 10px; }
       .alunos-table .progress-bar { width: 50px; }
@@ -1209,21 +1213,25 @@
 
         if (aluno) {
           const wa = getWhatsAppStatus(ag); const catKey = ag.categoria || aluno.categorias[0];
-          const waIcon = wa.sent ? 'check-circle' : 'clock'; const waColor = wa.sent ? 'var(--success)' : 'var(--text-secondary)';
+          const waIcon = wa.sent ? 'check-circle' : 'clock';
           const icons = getCatIcon(12); const aulasFeitas = aluno.aulasFeitas[catKey]||0; const totalAulas = aluno.totalAulas[catKey]||20;
           slot.innerHTML = `
             <span class="slot-time">${hora}</span>
             <div class="slot-content">
-              <div class="slot-content-row"><span class="slot-content-name">${aluno.nome}</span><span class="badge badge-${catKey}" style="display:inline-flex;align-items:center;gap:4px;">${icons[catKey]} ${CATEGORIES[catKey]}</span></div>
-              <div class="slot-content-sub">Aula ${aulasFeitas} de ${totalAulas}</div>
+              <div class="slot-content-row">
+                <span class="slot-content-name">${aluno.nome}</span>
+                <span class="slot-badge ${catKey}">${icons[catKey]} ${CATEGORIES[catKey]}</span>
+              </div>
+              <div class="slot-content-sub">${aulasFeitas} de ${totalAulas} aulas</div>
             </div>
             <div class="slot-right">
-              <div class="wa-status" style="color:${waColor};"><i data-feather="${waIcon}" style="width:13px;height:13px;"></i><span>${wa.label}</span></div>
+              <div class="wa-status ${wa.sent ? 'sent' : ''}"><i data-feather="${waIcon}" style="width:12px;height:12px;"></i><span>${wa.label}</span></div>
               <div class="slot-actions">
-                <button class="wa-btn" title="WhatsApp" onclick="event.stopPropagation();window.open('${getWhatsAppLink(aluno, hora, catKey)}', '_blank')"><i data-feather="message-circle" style="width:14px;height:14px;"></i></button>
-                <button class="delete-slot-btn" title="Cancelar aula" onclick="event.stopPropagation();cancelAppointment(${ag.id})"><i data-feather="x-circle"></i></button>
+                <button class="wa-btn" title="WhatsApp" onclick="event.stopPropagation();window.open('${getWhatsAppLink(aluno, hora, catKey)}', '_blank')"><i data-feather="message-circle"></i></button>
+                <button title="Cancelar" onclick="event.stopPropagation();cancelAppointment(${ag.id})"><i data-feather="x-circle"></i></button>
               </div>
             </div>`;
+          slot.className += ` occupied ${catKey}`;
           slot.style.cursor = 'pointer';
           slot.addEventListener('click', () => cancelAppointment(ag.id));
         } else {
