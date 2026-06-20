@@ -812,7 +812,14 @@
     const DEFAULT_USER = 'admin';
     const DEFAULT_PASS = 'admin';
 
-    const FIREBASE_CONFIG = null;
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAe6GB_LdyBTBQJf1gYPT3LzI5eETCog2g",
+      authDomain: "autoagenda-cce70.firebaseapp.com",
+      projectId: "autoagenda-cce70",
+      storageBucket: "autoagenda-cce70.firebasestorage.app",
+      messagingSenderId: "961311162766",
+      appId: "1:961311162766:web:8c3e898793a0287869e4df"
+    };
 
     // ===== FIREBASE =====
     let firebaseApp = null;
@@ -837,85 +844,67 @@
 
     function isFirebaseReady() { return firebaseApp && firebaseDb; }
 
-    // Data abstraction: localStorage (default) / Firestore (when configured)
-    async function dbGetAlunos() {
+    // Data abstraction: localStorage (default) / Firestore (when configured) — fire-and-forget
+    function dbFb(op) { if (isFirebaseReady() && location.protocol !== 'file:') { op().catch(e => console.warn('FB err:', e)); } }
+    function dbGetAlunos() {
       if (isFirebaseReady()) {
-        const snap = await firebaseDb.collection('alunos').orderBy('nome').get();
-        return snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
+        return firebaseDb.collection('alunos').orderBy('nome').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
       }
-      return data ? data.alunos : [];
+      return Promise.resolve(data ? data.alunos : []);
     }
-    async function dbSaveAlunos(alunos) {
-      if (isFirebaseReady()) {
-        try { const batch = firebaseDb.batch(); alunos.forEach(a => { batch.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); await batch.commit(); } catch(e) { console.warn('Firebase save batch error:', e); }
-      }
+    function dbSaveAlunos(alunos) {
+      dbFb(() => { const b = firebaseDb.batch(); alunos.forEach(a => { b.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); return b.commit(); });
       data.alunos = alunos; saveData();
     }
-    async function dbAddAluno(aluno) {
-      if (isFirebaseReady() && location.protocol !== 'file:') {
-        try { await firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno); } catch(e) { console.warn('Firebase save error:', e); }
-      }
+    function dbAddAluno(aluno) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno));
       data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
     }
-    async function dbUpdateAluno(id, updates) {
-      if (isFirebaseReady() && location.protocol !== 'file:') {
-        try { await firebaseDb.collection('alunos').doc(String(id)).update(updates); } catch(e) { console.warn('Firebase update error:', e); }
-      }
+    function dbUpdateAluno(id, updates) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).update(updates));
       const idx = data.alunos.findIndex(a => a.id === id);
       if (idx > -1) { Object.assign(data.alunos[idx], updates); saveData(); }
     }
-    async function dbDeleteAluno(id) {
-      if (isFirebaseReady() && location.protocol !== 'file:') {
-        try { await firebaseDb.collection('alunos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete error:', e); }
-      }
+    function dbDeleteAluno(id) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).delete());
       data.alunos = data.alunos.filter(a => a.id !== id); saveData();
     }
-
-    async function dbGetAgendamentos() {
+    function dbGetAgendamentos() {
       if (isFirebaseReady()) {
-        const snap = await firebaseDb.collection('agendamentos').orderBy('data').orderBy('horario').get();
-        return snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
+        return firebaseDb.collection('agendamentos').orderBy('data').orderBy('horario').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
       }
-      return data ? data.agendamentos : [];
+      return Promise.resolve(data ? data.agendamentos : []);
     }
-    async function dbSaveAgendamentos(agendamentos) {
-      if (isFirebaseReady()) {
-        try { const batch = firebaseDb.batch(); agendamentos.forEach(a => { batch.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); await batch.commit(); } catch(e) { console.warn('Firebase save batch error:', e); }
-      }
+    function dbSaveAgendamentos(agendamentos) {
+      dbFb(() => { const b = firebaseDb.batch(); agendamentos.forEach(a => { b.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); return b.commit(); });
       data.agendamentos = agendamentos; saveData();
     }
-    async function dbAddAgendamento(ag) {
-      if (isFirebaseReady() && location.protocol !== 'file:') {
-        try { await firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag); } catch(e) { console.warn('Firebase save agendamento error:', e); }
-      }
+    function dbAddAgendamento(ag) {
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag));
       data.agendamentos.push(ag); data.agendamentoIdCounter = Math.max(data.agendamentoIdCounter, ag.id + 1); saveData();
     }
-    async function dbDeleteAgendamento(id) {
-      if (isFirebaseReady() && location.protocol !== 'file:') {
-        try { await firebaseDb.collection('agendamentos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete agendamento error:', e); }
-      }
+    function dbDeleteAgendamento(id) {
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).delete());
       data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
     }
 
-    async function dbSyncFromFirebase() {
+    function dbSyncFromFirebase() {
       if (!isFirebaseReady()) return;
       try {
         const localCount = data.alunos.length + data.agendamentos.length;
         if (localCount === 0) {
-          const alunos = await dbGetAlunos();
-          const agendamentos = await dbGetAgendamentos();
-          if (alunos.length || agendamentos.length) {
-            data.alunos = alunos; data.agendamentos = agendamentos;
-            data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter);
-            data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter);
-            saveData();
-          }
+          dbGetAlunos().then(alunos => {
+            if (alunos.length) { data.alunos = alunos; data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter); }
+            dbGetAgendamentos().then(agendamentos => {
+              if (agendamentos.length) { data.agendamentos = agendamentos; data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter); }
+              saveData();
+            });
+          }).catch(() => {});
         } else {
-          await dbSaveAlunos(data.alunos);
-          await dbSaveAgendamentos(data.agendamentos);
+          dbSaveAlunos(data.alunos);
+          dbSaveAgendamentos(data.agendamentos);
         }
-        return true;
-      } catch(e) { console.warn('Firebase sync error:', e); return false; }
+      } catch(e) { console.warn('Firebase sync error:', e); }
     }
 
     function getAuth() {
@@ -1775,7 +1764,7 @@
         firebaseApp = null; firebaseDb = null;
         if (initFirebase()) {
           initFirebaseAuth();
-          dbSyncFromFirebase().then(() => { showToast('Firebase conectado!', 'success'); renderSchedule(); renderAlunos(); updateStats(); });
+          dbSyncFromFirebase(); showToast('Firebase conectado!', 'success'); renderSchedule(); renderAlunos(); updateStats();
         }
       } else {
         localStorage.removeItem(FIREBASE_KEY);
@@ -1818,7 +1807,7 @@
       if (getFirebaseConfig()) {
         if (initFirebase()) {
           initFirebaseAuth();
-          dbSyncFromFirebase().then(() => { /* data synced */ });
+          dbSyncFromFirebase();
         }
       }
     })();
