@@ -859,20 +859,20 @@
       data.alunos = alunos; saveData();
     }
     async function dbAddAluno(aluno) {
-      if (isFirebaseReady()) {
+      if (isFirebaseReady() && location.protocol !== 'file:') {
         try { await firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno); } catch(e) { console.warn('Firebase save error:', e); }
       }
       data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
     }
     async function dbUpdateAluno(id, updates) {
-      if (isFirebaseReady()) {
+      if (isFirebaseReady() && location.protocol !== 'file:') {
         try { await firebaseDb.collection('alunos').doc(String(id)).update(updates); } catch(e) { console.warn('Firebase update error:', e); }
       }
       const idx = data.alunos.findIndex(a => a.id === id);
       if (idx > -1) { Object.assign(data.alunos[idx], updates); saveData(); }
     }
     async function dbDeleteAluno(id) {
-      if (isFirebaseReady()) {
+      if (isFirebaseReady() && location.protocol !== 'file:') {
         try { await firebaseDb.collection('alunos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete error:', e); }
       }
       data.alunos = data.alunos.filter(a => a.id !== id); saveData();
@@ -892,13 +892,13 @@
       data.agendamentos = agendamentos; saveData();
     }
     async function dbAddAgendamento(ag) {
-      if (isFirebaseReady()) {
+      if (isFirebaseReady() && location.protocol !== 'file:') {
         try { await firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag); } catch(e) { console.warn('Firebase save agendamento error:', e); }
       }
       data.agendamentos.push(ag); data.agendamentoIdCounter = Math.max(data.agendamentoIdCounter, ag.id + 1); saveData();
     }
     async function dbDeleteAgendamento(id) {
-      if (isFirebaseReady()) {
+      if (isFirebaseReady() && location.protocol !== 'file:') {
         try { await firebaseDb.collection('agendamentos').doc(String(id)).delete(); } catch(e) { console.warn('Firebase delete agendamento error:', e); }
       }
       data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
@@ -939,7 +939,7 @@
     let firebaseGooglePending = false;
 
     function initFirebaseAuth() {
-      if (!isFirebaseReady() || typeof firebase === 'undefined') return;
+      try { if (!isFirebaseReady() || typeof firebase === 'undefined') return; } catch(e) { return; }
       const provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
@@ -1041,12 +1041,7 @@
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          if (parsed.alunos && parsed.alunos.length && typeof parsed.alunos[0].categoria === 'string') {
-            parsed.alunos = parsed.alunos.map(a => ({ ...a, categorias: [a.categoria], aulasFeitas: { carro: a.categoria === 'carro' ? a.aulasFeitas : 0, moto: a.categoria === 'moto' ? a.aulasFeitas : 0 }, totalAulas: { carro: 20, moto: 20 } }));
-            delete a.categoria;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-          }
-          return parsed;
+          if (parsed && parsed.alunos) return parsed;
         } catch(e) {}
       }
       const initial = { alunos: alunosIniciais, agendamentos: agendamentosIniciais, agendamentoIdCounter: 5, alunoIdCounter: 5 };
@@ -1692,7 +1687,8 @@
       } else {
         const novo = {id:data.alunoIdCounter++,nome,whatsapp:whatsRaw,categorias,aulasFeitas:buildAulasFeitas(),totalAulas:buildTotalAulas(),status:'ativo'};
         await dbAddAluno(novo);
-        closeModal();showToast('Aluno cadastrado com sucesso!','success');renderAlunos(document.getElementById('alunoSearch').value);
+        closeModal();showToast('Aluno cadastrado com sucesso!','success');
+        renderAlunos(document.getElementById('alunoSearch').value);
       }
     }
 
