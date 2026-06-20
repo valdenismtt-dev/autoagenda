@@ -564,38 +564,57 @@
     }
     @media (min-width: 1024px) { .menu-toggle { display: none !important; } .sidebar { transform: translateX(0) !important; } }
     @media (max-width: 600px) {
-      .slot { flex-wrap: wrap; gap: 8px; }
-      .slot-right { flex-direction: row; align-items: center; width: 100%; justify-content: flex-end; }
+      .slot { gap: 4px; padding: 8px; flex-wrap: nowrap; }
+      .slot:hover { background: var(--card); }
+      .slot-time { font-size: 11px; flex: 0 0 38px; }
+      .slot-content-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .slot-content-row { min-width: 0; }
+      .slot-content-sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .slot-right { flex-direction: row; align-items: center; gap: 4px; flex-shrink: 0; width: auto; }
+      .slot-right .wa-status { font-size: 10px; gap: 3px; }
+      .slot-actions button { width: 28px; height: 28px; }
+      .slot-actions button svg { width: 13px; height: 13px; }
       .alunos-table th:nth-child(4), .alunos-table td:nth-child(4) { display: none; }
+      .alunos-table th, .alunos-table td { padding: 8px 10px; }
+      .alunos-table .progress-bar { width: 50px; }
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
       .filter-bar .input-wrapper { width: 100%; }
-      .stat-card { padding: 12px 14px; }
-      .login-card { padding: 28px 20px 24px; }
+      .stat-card { padding: 10px 12px; }
+      .stat-card .value { font-size: 18px; }
+      .stat-card .label { font-size: 10px; }
+      .login-card { padding: 24px 16px 20px; }
       .modal { width: calc(100vw - 16px); max-height: 90vh; overflow-y: auto; }
-      .modal-body { padding: 16px; }
-      .modal-header { padding: 16px 16px 0; }
-      .modal-header h2 { font-size: 16px; }
-      .student-list-radio { max-height: 180px; }
-      .student-radio-item { padding: 12px; min-height: 48px; }
-      .student-radio-item .radio-circle { width: 22px; height: 22px; }
-      .form-input, .form-select { padding: 12px; font-size: 16px; }
-      .btn { padding: 12px 20px; font-size: 14px; min-height: 44px; }
-      .slot { padding: 12px; }
-      .slot:hover { background: var(--card); }
-      .slot-time { font-size: 13px; }
-      .slot-content-name { font-size: 14px; }
-      .page-header { padding: 16px 16px 0; }
-      .stats-bar { margin: 10px 16px 0; gap: 8px; }
-      .filter-bar { margin: 10px 16px 0; }
-      .day-selector { margin: 10px 16px 0; }
-      .schedule { margin: 10px 16px 0; }
-      .page-content { padding: 12px 16px 90px; }
+      .modal-body { padding: 12px; }
+      .modal-header { padding: 12px 12px 0; }
+      .modal-header h2 { font-size: 15px; }
+      .student-list-radio { max-height: 160px; }
+      .student-radio-item { padding: 10px; min-height: 44px; }
+      .student-radio-item .radio-circle { width: 20px; height: 20px; }
+      .student-radio-item .student-radio-info strong { font-size: 14px; }
+      .form-input, .form-select { padding: 10px; font-size: 15px; }
+      .btn { padding: 10px 16px; font-size: 13px; min-height: 40px; }
+      .page-header { padding: 12px 12px 0; }
+      .page-header h1 { font-size: 18px; }
+      .stats-bar { margin: 8px 12px 0; gap: 6px; }
+      .filter-bar { margin: 8px 12px 0; gap: 6px; }
+      .day-selector { margin: 8px 12px 0; }
+      .schedule { margin: 8px 12px 0; gap: 4px; }
+      .page-content { padding: 8px 12px 80px; }
       .table-wrap { overflow-x: auto; }
-      .alunos-table th, .alunos-table td { padding: 10px 12px; white-space: nowrap; }
-      .alunos-table .progress-bar { width: 60px; }
-      .sidebar-logo span { font-size: 18px; }
-      .fab { width: 52px; height: 52px; bottom: calc(var(--bottom-h) + 12px); right: 12px; }
-      .fab svg { width: 22px; height: 22px; }
+      .sidebar-logo span { font-size: 16px; }
+      .fab { width: 48px; height: 48px; bottom: calc(var(--bottom-h) + 8px); right: 8px; }
+      .fab svg { width: 20px; height: 20px; }
+      .day-arrow { width: 32px; height: 32px; }
+      .day-arrow svg { width: 16px; height: 16px; }
+      .day-btn { padding: 4px 8px; font-size: 11px; min-width: 32px; }
+      .day-btn .day-num { font-size: 14px; }
+      .day-btn .day-label { font-size: 9px; }
+      .schedule.weekly { font-size: 10px; }
+      .schedule.weekly .weekly-time { font-size: 10px; }
+      .schedule.weekly .weekly-cell { min-height: 28px; padding: 2px; font-size: 10px; }
+      .schedule.weekly .weekly-cell.occupied .wc-name { font-size: 10px; }
+      .schedule.weekly .weekly-cell.occupied .wc-sub { font-size: 9px; }
+      .schedule.weekly .weekly-header > div { font-size: 10px; padding: 4px 2px; }
     }
   </style>
 </head>
