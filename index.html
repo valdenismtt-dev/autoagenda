@@ -472,8 +472,7 @@
     .alunos-table .progress-bar { width: 100px; height: 6px; background: var(--bg); border-radius: 100px; overflow: hidden; display: inline-block; }
     .alunos-table .progress-bar .fill { height: 100%; border-radius: 100px; background: var(--primary); transition: width 0.3s; }
     .alunos-table .progress-text { font-size: 13px; color: var(--text-secondary); margin-left: 8px; }
-    .aluno-name-cell { cursor: pointer; position: relative; }
-    .aluno-name-cell .action-menu { position: absolute; left: 0; right: auto; top: 100%; z-index: 30; }
+    .aluno-name-cell { cursor: pointer; }
     .alunos-table .action-btn svg { width: 16px; height: 16px; }
 
     .action-menu {
@@ -1702,11 +1701,11 @@
     // Alunos table delegation
     document.getElementById('alunosTableBody').addEventListener('click', e => {
       const nameCell = e.target.closest('.aluno-name-cell');
-      if (nameCell) { e.stopPropagation(); const menu = nameCell.querySelector('.action-menu'); if(menu){const open=menu.classList.contains('open'); document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(!open) menu.classList.add('open');} return; }
+      if (nameCell) { e.stopPropagation(); document.querySelectorAll('.action-menu.open').forEach(m=>{m.classList.remove('open'); m.style.position=''; m.style.left=''; m.style.right=''; m.style.top=''; m.style.bottom='';}); const menu = nameCell.querySelector('.action-menu'); if(menu){const rect = nameCell.getBoundingClientRect(); const spaceBelow = window.innerHeight - rect.bottom; const spaceAbove = rect.top; if (spaceBelow < 160 && spaceAbove > 160) { menu.style.position = 'fixed'; menu.style.left = '16px'; menu.style.right = '16px'; menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px'; menu.style.top = 'auto'; } else { menu.style.position = 'fixed'; menu.style.left = '16px'; menu.style.right = '16px'; menu.style.top = (rect.bottom + 4) + 'px'; menu.style.bottom = 'auto'; } menu.classList.add('open');} return; }
       const menuItem = e.target.closest('.action-menu-item');
-      if (menuItem) { const id=parseInt(menuItem.dataset.id); const action=menuItem.dataset.action; document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(action==='edit') openEditAlunoModal(id); else if(action==='delete') deleteAluno(id); else if(action==='history') showHistory(id); }
+      if (menuItem) { const id=parseInt(menuItem.dataset.id); const action=menuItem.dataset.action; document.querySelectorAll('.action-menu.open').forEach(m=>{m.classList.remove('open'); m.style.position=''; m.style.left=''; m.style.right=''; m.style.top=''; m.style.bottom='';}); if(action==='edit') openEditAlunoModal(id); else if(action==='delete') deleteAluno(id); else if(action==='history') showHistory(id); }
     });
-    document.addEventListener('click', () => document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')));
+    document.addEventListener('click', () => document.querySelectorAll('.action-menu.open').forEach(m=>{m.classList.remove('open'); m.style.position=''; m.style.left=''; m.style.right=''; m.style.top=''; m.style.bottom='';}));
 
     // ===== NEW STUDENT MODAL =====
     function openNewStudentModal() {
