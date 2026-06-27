@@ -930,7 +930,6 @@
       if (isFirebaseReady()) {
         return firebaseDb.collection('alunos').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() })).sort((a,b) => a.nome.localeCompare(b.nome))).catch(() => []);
       }
-      }
       return Promise.resolve(data ? data.alunos : []);
     }
     function dbSaveAlunos(alunos) {
