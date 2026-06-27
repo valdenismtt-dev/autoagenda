@@ -1571,9 +1571,9 @@
           const feitas = aluno.aulasFeitas[categoria]||0;
           const total = aluno.totalAulas[categoria]||20;
           if (feitas >= total) {
-            closeModal();
-            showToast(`Aluno já atingiu o limite de aulas de ${CATEGORIES[categoria]} (${feitas}/${total}). Ajuste o total de aulas nas configurações do aluno.`, 'error');
-            return;
+            if (!confirm(`${aluno.nome} já atingiu o limite de aulas de ${CATEGORIES[categoria]} (${feitas}/${total}). Deseja agendar mesmo assim?`)) {
+              closeModal(); return;
+            }
           }
         }
 
