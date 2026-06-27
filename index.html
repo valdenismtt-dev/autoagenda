@@ -145,7 +145,8 @@
     .badge-pendente { background: var(--warning-bg); color: #B45309; }
     .dark .badge-pendente { color: #FBBF24; }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); transition: background var(--transition), border-color var(--transition); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); transition: all var(--transition); }
+    .card:hover { box-shadow: var(--shadow-lg); border-color: var(--primary); }
 
     /* STATS BAR */
     .stats-bar {
@@ -157,8 +158,9 @@
       border-radius: var(--radius-card); padding: 16px 20px;
       box-shadow: var(--shadow);
       display: flex; align-items: center; gap: 14px;
-      transition: background var(--transition), border-color var(--transition);
+      transition: all var(--transition); cursor: default;
     }
+    .stat-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--primary); }
     .stat-icon {
       width: 40px; height: 40px; border-radius: var(--radius-sm);
       display: flex; align-items: center; justify-content: center;
@@ -188,7 +190,8 @@
       color: var(--text-secondary); font-size: 12px; font-weight: 500;
       cursor: pointer; transition: all var(--transition);
     }
-    .chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); transform: translateY(-1px); }
+    .chip:active { transform: translateY(0); }
     .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
     .chip svg { width: 14px; height: 14px; }
 
@@ -208,7 +211,8 @@
       background: var(--card); cursor: pointer; color: var(--text-secondary);
       flex-shrink: 0; transition: all var(--transition);
     }
-    .day-selector .nav-btn:hover { background: var(--hover); color: var(--text); }
+    .day-selector .nav-btn:hover { background: var(--hover); color: var(--text); transform: translateY(-1px); }
+    .day-selector .nav-btn:active { transform: translateY(0); }
     .day-selector .nav-btn svg { width: 16px; height: 16px; }
     .day-selector .days { flex: 1; display: flex; gap: 4px; overflow-x: auto; justify-content: center; }
     .day-btn {
@@ -217,7 +221,8 @@
       border: none; background: transparent; cursor: pointer;
       transition: all var(--transition); min-width: 52px; font-family: inherit;
     }
-    .day-btn:hover { background: var(--hover); }
+    .day-btn:hover { background: var(--hover); transform: translateY(-1px); }
+    .day-btn:active { transform: translateY(0); }
     .day-btn .day-name { font-size: 11px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; }
     .day-btn .day-num { font-size: 15px; font-weight: 600; color: var(--text); }
     .day-btn.active { background: var(--primary); }
@@ -255,8 +260,10 @@
       padding: 4px; min-height: 36px; cursor: pointer;
       transition: all var(--transition); font-size: 11px;
     }
-    .schedule.weekly .weekly-cell:hover { background: var(--primary-light); border-color: var(--primary); }
+    .schedule.weekly .weekly-cell:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
     .schedule.weekly .weekly-cell.available { border-style: dashed; border-color: #D1D5DB; }
+    .schedule.weekly .weekly-cell.available:hover { border-color: var(--primary); background: var(--primary-light); }
+    .schedule.weekly .weekly-cell.occupied:hover { border-color: var(--primary); }
     .schedule.weekly .weekly-cell.occupied {
       display: flex; flex-direction: column; gap: 2px; padding: 4px 6px;
     }
@@ -277,7 +284,7 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
     }
-    .month-calendar .mc-day:hover { border-color: var(--primary); background: var(--primary-light); }
+    .month-calendar .mc-day:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
     .month-calendar .mc-day.other-month { opacity: 0.35; }
     .month-calendar .mc-day.today { border-color: var(--primary); background: var(--primary-light); }
     .month-calendar .mc-day .mc-num { font-size: 15px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
@@ -350,18 +357,20 @@
       box-shadow: 0 4px 12px rgba(37,99,235,0.3);
       transition: all 0.15s; z-index: 50;
     }
-    .fab:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
+    .fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
     .fab:active { transform: scale(0.95); }
     .fab svg { width: 24px; height: 24px; }
 
     /* VIEW TOGGLE */
     .view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
     .view-toggle button {
-      padding: 6px 12px; border: none; background: transparent;
-      color: var(--text-secondary); cursor: pointer; font-size: 12px;
-      font-weight: 500; transition: all var(--transition); font-family: inherit;
+      padding: 6px 14px; border: none; background: var(--card);
+      color: var(--text-secondary); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all var(--transition); font-family: inherit;
     }
+    .view-toggle button:hover { background: var(--hover); color: var(--text); }
     .view-toggle button.active { background: var(--primary); color: #fff; }
+    .view-toggle button.active:hover { background: var(--primary-dark); }
     .view-toggle button:not(:last-child) { border-right: 1px solid var(--border); }
 
     /* MODAL */
