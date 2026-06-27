@@ -934,19 +934,26 @@
     function dbSyncFromFirebase() {
       if (!isFirebaseReady()) return;
       try {
-        const localCount = data.alunos.length + data.agendamentos.length;
-        if (localCount === 0) {
-          dbGetAlunos().then(alunos => {
-            if (alunos.length) { data.alunos = alunos; data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter); }
-            dbGetAgendamentos().then(agendamentos => {
-              if (agendamentos.length) { data.agendamentos = agendamentos; data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter); }
-              saveData();
-            });
-          }).catch(() => {});
-        } else {
-          dbSaveAlunos(data.alunos);
-          dbSaveAgendamentos(data.agendamentos);
-        }
+        Promise.all([dbGetAlunos(), dbGetAgendamentos()]).then(([alunos, agendamentos]) => {
+          let changed = false;
+          if (alunos.length > 0) {
+            data.alunos = alunos;
+            data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), 0);
+            changed = true;
+          }
+          if (agendamentos.length > 0) {
+            data.agendamentos = agendamentos;
+            data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), 0);
+            changed = true;
+          }
+          if (changed) {
+            saveData();
+            renderSchedule(); renderAlunos(); updateStats();
+          } else if (data.alunos.length > 0 || data.agendamentos.length > 0) {
+            dbSaveAlunos(data.alunos);
+            dbSaveAgendamentos(data.agendamentos);
+          }
+        }).catch(() => {});
       } catch(e) { console.warn('Firebase sync error:', e); }
     }
 
