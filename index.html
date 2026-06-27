@@ -891,7 +891,7 @@
     function setupFirebaseAuthListener() {
       if (typeof firebase !== 'undefined' && firebase.auth) {
         firebase.auth().onAuthStateChanged(user => {
-          if (user) dbSyncFromFirebase();
+          if (user) dbSyncFromFirebase(true);
         });
       }
     }
@@ -902,7 +902,7 @@
         if (isFirebaseReady()) {
           initFirebaseAuth();
           setupFirebaseAuthListener();
-          try { dbSyncFromFirebase(); } catch(e) {}
+          try { dbSyncFromFirebase(true); } catch(e) {}
           updateFirebaseStatus();
         } else if (fbRetries < 5) {
           fbRetries++;
@@ -973,7 +973,7 @@
       data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
     }
 
-    function dbSyncFromFirebase() {
+    function dbSyncFromFirebase(silent) {
       if (!isFirebaseReady()) return;
       Promise.all([
         firebaseDb.collection('alunos').get().catch(() => null),
@@ -995,13 +995,13 @@
         if (changed) {
           saveData();
           renderSchedule(); renderAlunos(); updateStats();
-          showToast('Sincronizado com Firebase.', 'success');
+          if (!silent) showToast('Sincronizado.', 'success');
         } else {
-          showToast('Nenhum dado novo encontrado no Firebase.', 'info');
+          if (!silent) showToast('Nenhum dado novo encontrado.', 'info');
         }
       }).catch(e => {
         console.warn('Sync error:', e);
-        showToast('Erro ao sincronizar: ' + e.message, 'error');
+        if (!silent) showToast('Erro ao sincronizar: ' + e.message, 'error');
       });
     }
 
@@ -2002,10 +2002,10 @@
           // Wait for Auth to restore session before syncing
           if (typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().onAuthStateChanged(user => {
-              if (user) dbSyncFromFirebase();
+              if (user) dbSyncFromFirebase(true);
             });
             // Also try sync immediately (will work if auth already cached)
-            setTimeout(dbSyncFromFirebase, 1000);
+            setTimeout(() => dbSyncFromFirebase(true), 1000);
           } else {
             dbSyncFromFirebase();
           }
