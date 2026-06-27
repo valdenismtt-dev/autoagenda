@@ -1884,14 +1884,20 @@
     // ===== SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(reg => {
-        reg.addEventListener('updatefound', () => {
-          const newSW = reg.installing;
-          newSW.addEventListener('statechange', () => {
-            if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
+        // Force immediate update check (bypasses HTTP cache per SW spec)
+        setTimeout(() => reg.update(), 1000);
+        function onSWUpdate(sw) {
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'activated' && navigator.serviceWorker.controller && !window._swUpdated) {
+              window._swUpdated = true;
               window.location.reload();
             }
           });
-        });
+        }
+        if (reg.installing) { onSWUpdate(reg.installing); }
+        reg.addEventListener('updatefound', () => { if (reg.installing) onSWUpdate(reg.installing); });
+        // Also check periodically
+        setInterval(() => reg.update(), 60000);
       }).catch(() => {});
     }
 
