@@ -1112,6 +1112,7 @@
 
     function navigate(page) {
       state.currentPage = page;
+      localStorage.setItem('autoagenda_page', page);
       document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === page));
       document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === page));
       document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
@@ -1833,7 +1834,8 @@
 
     // ===== INIT =====
     function initApp() {
-      navigate('agenda');
+      const saved = localStorage.getItem('autoagenda_page');
+      navigate(saved || 'agenda');
       loadConfig();
     }
 
