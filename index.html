@@ -1010,26 +1010,28 @@
     }
 
     function doLogin() {
-      const user = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value;
-      const auth = getAuth();
-      if (user === DEFAULT_USER && pass === DEFAULT_PASS) {
-        auth.user = DEFAULT_USER; auth.pass = DEFAULT_PASS;
-      }
-      if (user === auth.user && pass === auth.pass) {
-        auth.authenticated = true; saveAuth(auth);
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('loginError').style.display = 'none';
-        if (auth.nome) {
-          document.getElementById('sidebarUserName').textContent = auth.nome;
-          const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-          document.querySelector('#sidebarUser .avatar').textContent = initials;
+      try {
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value;
+        const auth = getAuth();
+        if ((user === 'admin' && pass === 'admin') || (user === (auth&&auth.user) && pass === (auth&&auth.pass))) {
+          auth.authenticated = true; saveAuth(auth);
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('loginError').style.display = 'none';
+          if (auth.nome) {
+            document.getElementById('sidebarUserName').textContent = auth.nome;
+            const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+            document.querySelector('#sidebarUser .avatar').textContent = initials;
+          }
+          document.getElementById('loginPass').value = '';
+          initApp();
+        } else {
+          document.getElementById('loginError').style.display = 'block';
+          document.getElementById('loginPass').value = '';
         }
-        document.getElementById('loginPass').value = '';
-        initApp();
-      } else {
+      } catch(e) {
+        document.getElementById('loginError').textContent = 'Erro: ' + e.message;
         document.getElementById('loginError').style.display = 'block';
-        document.getElementById('loginPass').value = '';
       }
     }
 
