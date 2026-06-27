@@ -1,4 +1,4 @@
-const CACHE = 'autoagenda-v4';
+const CACHE = 'autoagenda-v5';
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -11,6 +11,9 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
   );
+});
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {

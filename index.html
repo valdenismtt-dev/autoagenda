@@ -1897,20 +1897,18 @@
 
     // ===== SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js').then(reg => {
-        // Force immediate update check (bypasses HTTP cache per SW spec)
-        setTimeout(() => reg.update(), 1000);
+      navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' }).then(reg => {
+        function autoReload() { if (!window._swUpdated) { window._swUpdated = true; window.location.reload(); } }
+        navigator.serviceWorker.addEventListener('controllerchange', autoReload);
+        if (reg.waiting) { reg.waiting.postMessage({ action: 'skipWaiting' }); autoReload(); }
         function onSWUpdate(sw) {
           sw.addEventListener('statechange', () => {
-            if (sw.state === 'activated' && navigator.serviceWorker.controller && !window._swUpdated) {
-              window._swUpdated = true;
-              window.location.reload();
-            }
+            if (sw.state === 'activated' && navigator.serviceWorker.controller) autoReload();
           });
         }
-        if (reg.installing) { onSWUpdate(reg.installing); }
+        if (reg.installing) onSWUpdate(reg.installing);
         reg.addEventListener('updatefound', () => { if (reg.installing) onSWUpdate(reg.installing); });
-        // Also check periodically
+        reg.update();
         setInterval(() => reg.update(), 60000);
       }).catch(() => {});
     }
