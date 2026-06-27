@@ -887,7 +887,30 @@
       } catch(e) { console.warn('Firebase init error:', e); return false; }
     }
     // Retry Firebase init after delay (handles slow SDK loading on mobile)
-    setTimeout(() => { if (!isFirebaseReady() && getFirebaseConfig()) { initFirebase(); initFirebaseAuth(); try { dbSyncFromFirebase(); } catch(e) {} updateFirebaseStatus(); } }, 3000);
+    let fbRetries = 0;
+    function setupFirebaseAuthListener() {
+      if (typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().onAuthStateChanged(user => {
+          if (user) dbSyncFromFirebase();
+        });
+      }
+    }
+    function retryFirebase() {
+      if (isFirebaseReady()) { setupFirebaseAuthListener(); updateFirebaseStatus(); return; }
+      if (getFirebaseConfig()) {
+        initFirebase();
+        if (isFirebaseReady()) {
+          initFirebaseAuth();
+          setupFirebaseAuthListener();
+          try { dbSyncFromFirebase(); } catch(e) {}
+          updateFirebaseStatus();
+        } else if (fbRetries < 5) {
+          fbRetries++;
+          setTimeout(retryFirebase, 2000);
+        }
+      }
+    }
+    setTimeout(retryFirebase, 2000);
 
     function isFirebaseReady() { return firebaseApp && firebaseDb; }
 
@@ -1190,6 +1213,10 @@
       } else {
         subtitle.textContent = ''; daySel.style.display = 'none'; monthSel.style.display = 'none'; fab.style.display = 'none'; stats.style.display = 'none'; filter.style.display = 'none';
         headerRight.innerHTML = '';
+        setTimeout(updateFirebaseStatus, 100);
+        // Keep checking Firebase status while on config page
+        setTimeout(updateFirebaseStatus, 2000);
+        setTimeout(updateFirebaseStatus, 5000);
       }
       try { feather.replace(); } catch(e) {}
     }
