@@ -818,9 +818,11 @@
                 <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Pegue esses dados em <a href="https://console.firebase.google.com" target="_blank" style="color:var(--primary);">Firebase Console</a> > Configurações do projeto > Seus apps > Web</div>
               </div>
               <button class="btn btn-primary" id="configSaveBtn" style="width:100%;justify-content:center;margin-bottom:24px;"><i data-feather="check"></i> Salvar</button>
+              <div id="firebaseStatus" style="font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:16px;display:none;"></div>
             </div>
             <div class="export-actions">
               <button class="btn btn-primary" id="exportJsonBtn"><i data-feather="download"></i> Exportar Dados (JSON)</button>
+              <button class="btn btn-outline" id="syncNowBtn"><i data-feather="refresh-cw"></i> Sincronizar Agora</button>
               <button class="btn btn-outline" id="exportPrintBtn"><i data-feather="printer"></i> Imprimir Agenda</button>
             </div>
           </div>
@@ -1804,6 +1806,36 @@
     });
     document.getElementById('exportPrintBtn').addEventListener('click', () => { if (state.currentPage !== 'agenda') navigate('agenda'); window.print(); });
 
+    document.getElementById('syncNowBtn').addEventListener('click', () => {
+      if (!isFirebaseReady()) {
+        if (!initFirebase()) { showToast('Firebase nao esta configurado.', 'error'); return; }
+      }
+      showToast('Sincronizando...', 'info');
+      dbSyncFromFirebase();
+      showToast('Sincronizacao concluida!', 'success');
+      updateFirebaseStatus();
+    });
+
+    function updateFirebaseStatus() {
+      const el = document.getElementById('firebaseStatus');
+      if (!el) return;
+      if (isFirebaseReady()) {
+        const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+        el.style.display = 'block';
+        if (user) {
+          el.style.background = '#ECFDF5'; el.style.color = '#059669';
+          el.textContent = 'Firebase conectado como ' + user.email;
+        } else {
+          el.style.background = '#FFFBEB'; el.style.color = '#B45309';
+          el.textContent = 'Firebase conectado, mas sem usuario logado. Use "Entrar com Google".';
+        }
+      } else {
+        el.style.display = 'block';
+        el.style.background = '#FEF2F2'; el.style.color = '#DC2626';
+        el.textContent = 'Firebase nao conectado. Verifique as credenciais.';
+      }
+    }
+
     // ===== SERVICE WORKER =====
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(reg => {
@@ -1884,6 +1916,7 @@
         document.getElementById('configFirebaseStorageBucket').value = fb.storageBucket || '';
         document.getElementById('configFirebaseMessagingSenderId').value = fb.messagingSenderId || '';
       }
+      updateFirebaseStatus();
     }
 
     // ===== INIT =====
