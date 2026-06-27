@@ -272,7 +272,6 @@
     }
     .schedule.weekly .weekly-cell.occupied .wc-name { font-weight: 600; font-size: 11px; color: var(--text); }
     .schedule.weekly .weekly-cell.occupied .wc-sub { font-size: 10px; color: var(--text-secondary); }
-    .schedule.weekly .weekly-cell.lunch { background: var(--hover); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 10px; }
 
     /* ─── MONTHLY ─── */
     .schedule.monthly { display: block; }
@@ -314,8 +313,6 @@
     .slot.available:hover { border-color: var(--primary); background: var(--primary-light); }
     .slot.available .slot-time { color: var(--text-secondary); }
     .slot.available .slot-content-text { color: #94A3B8; font-size: 13px; }
-    .slot.lunch { background: var(--hover); border-color: var(--border); cursor: default; }
-    .slot.lunch .slot-content-text { color: var(--text-secondary); font-size: 13px; }
     .slot.occupied.carro { border-left: 4px solid var(--car); background: var(--card); }
     .slot.occupied.moto { border-left: 4px solid var(--moto); background: var(--card); }
     .slot.occupied.carro.concluida { border-left: 4px solid var(--success); background: var(--card); }
@@ -1308,13 +1305,6 @@
       if (state.viewMode === 'month') { renderMonthlyView(container); return; }
 
       allHoras.forEach(hora => {
-        if (hora === '12:00') {
-          const slot = document.createElement('div'); slot.className = 'slot lunch';
-          slot.style.animationDelay = '0s';
-          slot.innerHTML = `<span class="slot-time" style="color:var(--text-secondary);">12:00</span><svg class="slot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg><div class="slot-content"><div class="slot-content-text">Intervalo — 12:00 às 13:00</div></div>`;
-          container.appendChild(slot); return;
-        }
-
         const ag = filtered.find(a => a.horario === hora);
         if (searchQ && ag) { const al = getAluno(ag.alunoId); if (al && !al.nome.toLowerCase().includes(searchQ)) return; }
         if (!ag && searchQ) return;
@@ -1378,8 +1368,7 @@
       });
 
       horas.forEach(h => {
-        if (h === '12:00') { html += `<div class="weekly-time">12:00</div>`; for (let i=0;i<7;i++) html += `<div class="weekly-cell lunch" style="background:var(--hover);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-secondary);">☕</div>`; return; }
-        if (h === '13:00') return;
+
         html += `<div class="weekly-time">${h}</div>`;
         dates.forEach(d => {
           const dateStr = formatDateStr(d);
