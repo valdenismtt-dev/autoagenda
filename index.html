@@ -886,6 +886,8 @@
         return true;
       } catch(e) { console.warn('Firebase init error:', e); return false; }
     }
+    // Retry Firebase init after delay (handles slow SDK loading on mobile)
+    setTimeout(() => { if (!isFirebaseReady() && getFirebaseConfig()) { initFirebase(); initFirebaseAuth(); try { dbSyncFromFirebase(); } catch(e) {} updateFirebaseStatus(); } }, 3000);
 
     function isFirebaseReady() { return firebaseApp && firebaseDb; }
 
@@ -1833,6 +1835,7 @@
     function updateFirebaseStatus() {
       const el = document.getElementById('firebaseStatus');
       if (!el) return;
+      if (!isFirebaseReady()) initFirebase();
       if (isFirebaseReady()) {
         const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
         el.style.display = 'block';
