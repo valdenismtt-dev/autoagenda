@@ -17,6 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; width: 100%; }
     :root {
       --bg: #F8F9FA; --card: #FFFFFF; --text: #1A1D23; --text-secondary: #6B7280;
       --primary: #2563EB; --primary-light: #EFF6FF; --primary-dark: #1D4ED8;
@@ -574,6 +575,7 @@
     @media (max-width: 1023px) {
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0); }
+      .sidebar.open ~ .bottom-nav { display: none; }
       .main-content { margin-left: 0; }
       .bottom-nav { display: flex; }
       .main-content { padding-bottom: var(--bottom-h); }
@@ -1826,8 +1828,17 @@
     }
 
     // ===== MENU TOGGLE =====
-    document.getElementById('menuToggle').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
-    document.querySelectorAll('.sidebar-nav-item').forEach(item => { item.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open')); });
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('bottomNav').style.display = 
+        document.getElementById('sidebar').classList.contains('open') && window.innerWidth < 1024 ? 'none' : 'flex';
+    });
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => { 
+      item.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('bottomNav').style.display = window.innerWidth < 1024 ? 'flex' : '';
+      });
+    });
 
     // ===== NAVIGATION =====
     document.querySelectorAll('.sidebar-nav-item, .bottom-nav-item').forEach(item => { item.addEventListener('click', () => { if(item.dataset.page) navigate(item.dataset.page); }); });
