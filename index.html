@@ -888,7 +888,17 @@
     function isFirebaseReady() { return firebaseApp && firebaseDb; }
 
     // Data abstraction: localStorage (default) / Firestore (when configured) — fire-and-forget
-    function dbFb(op, label) { if (isFirebaseReady() && location.protocol !== 'file:') { op().catch(e => { console.warn('FB err:', e); if (label && e.code !== 'permission-denied') showToast('Erro no Firebase: ' + label, 'error'); }); } }
+    function dbFb(op, label) {
+      if (!isFirebaseReady()) {
+        if (!initFirebase()) return;
+      }
+      if (location.protocol !== 'file:') {
+        op().catch(e => {
+          console.warn('FB err:', e);
+          if (label && e.code !== 'permission-denied') showToast('Erro no Firebase: ' + label, 'error');
+        });
+      }
+    }
     function dbGetAlunos() {
       if (isFirebaseReady()) {
         return firebaseDb.collection('alunos').orderBy('nome').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
@@ -957,10 +967,7 @@
           }
         });
       }).catch(() => {
-        if (data.alunos.length > 0 || data.agendamentos.length > 0) {
-          dbSaveAlunos(data.alunos);
-          dbSaveAgendamentos(data.agendamentos);
-        }
+        // Firebase query failed (e.g. offline, permission). Keep local data.
       });
     }
 
@@ -1888,6 +1895,12 @@
 
     // Check auth on load and init Firebase
     (function() {
+      // Reset data if ?reset=1 in URL
+      if (window.location.search.includes('reset=1')) {
+        localStorage.clear();
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
       const auth = getAuth();
       if (auth.nome) {
         document.getElementById('sidebarUserName').textContent = auth.nome;
@@ -1907,6 +1920,8 @@
             firebase.auth().onAuthStateChanged(user => {
               if (user) dbSyncFromFirebase();
             });
+            // Also try sync immediately (will work if auth already cached)
+            setTimeout(dbSyncFromFirebase, 1000);
           } else {
             dbSyncFromFirebase();
           }
