@@ -1025,6 +1025,7 @@
 
     function doLogout() {
       const auth = getAuth(); auth.authenticated = false; saveAuth(auth);
+      localStorage.removeItem('autoagenda_page');
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('loginUser').value = '';
       document.getElementById('loginPass').value = '';
