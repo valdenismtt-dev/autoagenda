@@ -17,7 +17,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { overflow-x: hidden; width: 100%; }
+    body { overflow-x: hidden; }
     :root {
       --bg: #F8F9FA; --card: #FFFFFF; --text: #1A1D23; --text-secondary: #6B7280;
       --primary: #2563EB; --primary-light: #EFF6FF; --primary-dark: #1D4ED8;
@@ -457,7 +457,7 @@
 
     .alunos-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .alunos-header .input-wrapper { width: 280px; max-width: 100%; }
-    .alunos-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); overflow: hidden; }
+    .alunos-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); overflow-x: auto; }
     .alunos-table { width: 100%; border-collapse: collapse; }
     .alunos-table th {
       text-align: left; padding: 12px 16px; font-size: 11px;
