@@ -668,9 +668,9 @@
       </div>
       <div class="form-group">
         <label class="form-label">Senha</label>
-        <input type="password" class="form-input" id="loginPass" placeholder="••••••" autocomplete="current-password">
+        <input type="password" class="form-input" id="loginPass" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Entrar</button>
     </div>
   </div>
 
@@ -1798,7 +1798,6 @@
     }
 
     // ===== LOGIN EVENTS =====
-    document.getElementById('loginBtn').addEventListener('click', doLogin);
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
     document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
     document.getElementById('logoutBtn').addEventListener('click', doLogout);
