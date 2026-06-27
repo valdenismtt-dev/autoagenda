@@ -954,10 +954,14 @@
       let authStr = localStorage.getItem(AUTH_KEY);
       if (!authStr) {
         const def = { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false };
-        localStorage.setItem(AUTH_KEY, JSON.stringify(def));
+        try { localStorage.setItem(AUTH_KEY, JSON.stringify(def)); } catch(e) {}
         return def;
       }
-      try { return JSON.parse(authStr); } catch(e) { return { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false }; }
+      try {
+        const parsed = JSON.parse(authStr);
+        if (parsed && typeof parsed === 'object') return parsed;
+      } catch(e) {}
+      return { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false };
     }
     function saveAuth(auth) { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); }
 
