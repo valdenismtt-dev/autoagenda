@@ -314,6 +314,11 @@
     .slot.lunch .slot-content-text { color: var(--text-secondary); font-size: 13px; }
     .slot.occupied.carro { border-left: 5px solid var(--car); background: linear-gradient(135deg, var(--card) 0%, var(--car-bg) 60%); }
     .slot.occupied.moto { border-left: 5px solid var(--moto); background: linear-gradient(135deg, var(--card) 0%, var(--moto-bg) 60%); }
+    .slot.occupied.carro.concluida { border-left: 5px solid var(--car); background: linear-gradient(135deg, var(--card) 0%, #D1FAE5 60%); opacity: 0.85; }
+    .slot.occupied.moto.concluida { border-left: 5px solid var(--moto); background: linear-gradient(135deg, var(--card) 0%, #EDE9FE 60%); opacity: 0.85; }
+    .dark .slot.occupied.carro.concluida { background: linear-gradient(135deg, var(--card) 0%, #064E3B 60%); }
+    .dark .slot.occupied.moto.concluida { background: linear-gradient(135deg, var(--card) 0%, #2E1065 60%); }
+    .slot.occupied.concluida .slot-content-name::after { content: ' ✓'; color: var(--success); font-weight: 700; }
     .slot.now { box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
     .slot-time {
       font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
@@ -1149,11 +1154,7 @@
       let semana = 0;
       weekDates.forEach(d => { semana += getAgendamentosByDate(formatDateStr(d)).length; });
       const ativos = data.alunos.filter(a => a.status === 'ativo').length;
-      const concluidas = data.alunos.reduce((acc, a) => {
-        let sum = 0;
-        (a.categorias||[]).forEach(c => { sum += (a.aulasFeitas[c]||0); });
-        return acc + sum;
-      }, 0);
+      const concluidas = data.agendamentos.filter(a => a.concluida).length;
       document.getElementById('statHoje').textContent = hoje;
       document.getElementById('statSemana').textContent = semana;
       document.getElementById('statAlunos').textContent = ativos;
@@ -1225,6 +1226,7 @@
           const wa = getWhatsAppStatus(ag); const catKey = ag.categoria || aluno.categorias[0];
           const waIcon = wa.sent ? 'check-circle' : 'clock';
           const icons = getCatIcon(12); const aulasFeitas = aluno.aulasFeitas[catKey]||0; const totalAulas = aluno.totalAulas[catKey]||20;
+          const concluida = ag.concluida;
           slot.innerHTML = `
             <span class="slot-time">${hora}</span>
             <div class="slot-content">
@@ -1232,16 +1234,17 @@
                 <span class="slot-content-name">${aluno.nome}</span>
                 <span class="slot-badge ${catKey}">${icons[catKey]} ${CATEGORIES[catKey]}</span>
               </div>
-              <div class="slot-content-sub">${aulasFeitas} de ${totalAulas} aulas</div>
+              <div class="slot-content-sub">${aulasFeitas} de ${totalAulas} aulas${concluida ? ' · ✅ Concluída' : ''}</div>
             </div>
             <div class="slot-right">
               <div class="wa-status ${wa.sent ? 'sent' : ''}"><i data-feather="${waIcon}" style="width:12px;height:12px;"></i><span>${wa.label}</span></div>
               <div class="slot-actions">
                 <button class="wa-btn" title="WhatsApp" onclick="event.stopPropagation();window.open('${getWhatsAppLink(aluno, hora, catKey)}', '_blank')"><i data-feather="message-circle"></i></button>
+                ${!concluida ? `<button title="Concluir aula" onclick="event.stopPropagation();concluirAula(${ag.id})"><i data-feather="check"></i></button>` : ''}
                 <button title="Cancelar" onclick="event.stopPropagation();cancelAppointment(${ag.id})"><i data-feather="x-circle"></i></button>
               </div>
             </div>`;
-          slot.className += ` occupied ${catKey}`;
+          slot.className += ` occupied ${catKey}${concluida ? ' concluida' : ''}`;
           slot.style.cursor = 'pointer';
           slot.addEventListener('click', () => cancelAppointment(ag.id));
         } else {
@@ -1413,6 +1416,16 @@
         showToast('Aula cancelada.', 'info');
         renderSchedule(); updateStats();
       });
+    }
+
+    function concluirAula(id) {
+      const ag = data.agendamentos.find(a => a.id === id);
+      if (!ag) return;
+      ag.concluida = !ag.concluida;
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).update({ concluida: ag.concluida }));
+      saveData();
+      showToast(ag.concluida ? 'Aula marcada como concluída!' : 'Aula reaberta.', ag.concluida ? 'success' : 'info');
+      renderSchedule(); updateStats();
     }
 
     // ===== FILTERS =====
