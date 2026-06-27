@@ -995,7 +995,7 @@
         if (changed) {
           saveData();
           renderSchedule(); renderAlunos(); updateStats();
-          showToast('Sincronizado: ' + alunos.length + ' alunos, ' + agendamentos.length + ' aulas', 'success');
+          showToast('Sincronizado com Firebase.', 'success');
         } else {
           showToast('Nenhum dado novo encontrado no Firebase.', 'info');
         }
