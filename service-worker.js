@@ -1,4 +1,4 @@
-const CACHE = 'autoagenda-v2';
+const CACHE = 'autoagenda-v3';
 const ASSETS = [
   'index.html',
   'manifest.json',
