@@ -912,7 +912,12 @@
       data.alunos = alunos; saveData();
     }
     function dbAddAluno(aluno) {
-      dbFb(() => firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno), 'adicionar aluno');
+      if (isFirebaseReady() && location.protocol !== 'file:') {
+        firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno).catch(e => {
+          console.warn('FB err add aluno:', e);
+          showToast('Erro ao salvar aluno no Firebase: ' + e.message, 'error');
+        });
+      }
       data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
     }
     function dbUpdateAluno(id, updates) {
@@ -1812,6 +1817,16 @@
         if (!initFirebase()) { showToast('Firebase nao esta configurado.', 'error'); return; }
       }
       showToast('Sincronizando...', 'info');
+      // Also do a direct test write+read
+      firebaseDb.collection('_test').doc('test').set({ ts: Date.now(), device: 'PC' }).then(() => {
+        firebaseDb.collection('_test').doc('test').get().then(doc => {
+          if (doc.exists) {
+            console.log('Firebase test OK:', doc.data());
+          }
+        });
+      }).catch(e => {
+        showToast('Teste Firebase FALHOU: ' + e.message, 'error');
+      });
       dbSyncFromFirebase();
     });
 
