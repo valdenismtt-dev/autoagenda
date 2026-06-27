@@ -589,13 +589,16 @@
     @media (min-width: 1024px) { .menu-toggle { display: none !important; } .sidebar { transform: translateX(0) !important; } }
     @media (max-width: 600px) {
       .slot { gap: 4px; padding: 8px 10px; flex-wrap: nowrap; }
-      .slot-time { font-size: 11px; min-width: 32px; }
+      .slot-time { font-size: 11px; min-width: 28px; }
       .slot-content-name { font-size: 12px; }
       .slot-content-sub { font-size: 10px; }
       .slot-icon { width: 14px; height: 14px; }
-      .slot-right { flex-direction: row; align-items: center; gap: 4px; flex-shrink: 0; width: auto; }
+      .slot-badge { font-size: 10px; padding: 1px 6px; gap: 2px; }
+      .slot-right { flex-direction: row; align-items: center; gap: 3px; flex-shrink: 0; width: auto; }
       .slot-right .wa-status { font-size: 10px; gap: 2px; }
+      .slot-right .wa-status span { display: none; }
       .slot-actions .concluida-badge { font-size: 9px; padding: 2px 6px; }
+      .slot-actions button svg { width: 13px; height: 13px; }
       .alunos-table th:nth-child(2), .alunos-table td:nth-child(2) { display: none; }
       .alunos-table th, .alunos-table td { padding: 8px 10px; }
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
