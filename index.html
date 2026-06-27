@@ -1009,6 +1009,9 @@
       const user = document.getElementById('loginUser').value.trim();
       const pass = document.getElementById('loginPass').value;
       const auth = getAuth();
+      if (user === DEFAULT_USER && pass === DEFAULT_PASS) {
+        auth.user = DEFAULT_USER; auth.pass = DEFAULT_PASS;
+      }
       if (user === auth.user && pass === auth.pass) {
         auth.authenticated = true; saveAuth(auth);
         document.getElementById('loginScreen').classList.add('hidden');
@@ -1575,7 +1578,7 @@
           const feitas = aluno.aulasFeitas[categoria]||0;
           const total = aluno.totalAulas[categoria]||20;
           if (feitas >= total) {
-            if (!confirm(`${aluno.nome} já atingiu o limite de aulas de ${CATEGORIES[categoria]} (${feitas}/${total}). Deseja agendar mesmo assim?`)) {
+            if (!confirm(`${aluno.nome} j\u00e1 atingiu o limite de aulas de ${CATEGORIES[categoria]} (${feitas}/${total}). Deseja agendar mesmo assim?`)) {
               closeModal(); return;
             }
           }
