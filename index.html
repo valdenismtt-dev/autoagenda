@@ -928,7 +928,8 @@
     }
     function dbGetAlunos() {
       if (isFirebaseReady()) {
-        return firebaseDb.collection('alunos').orderBy('nome').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
+        return firebaseDb.collection('alunos').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() })).sort((a,b) => a.nome.localeCompare(b.nome))).catch(() => []);
+      }
       }
       return Promise.resolve(data ? data.alunos : []);
     }
@@ -975,29 +976,30 @@
 
     function dbSyncFromFirebase() {
       if (!isFirebaseReady()) return;
-      firebaseDb.collection('alunos').orderBy('nome').get().then(snap => {
-        const alunos = snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
-        firebaseDb.collection('agendamentos').orderBy('data').orderBy('horario').get().then(snap2 => {
-          const agendamentos = snap2.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
-          let changed = false;
-          if (alunos.length > 0) {
-            data.alunos = alunos;
-            data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), 0);
-            changed = true;
-          }
-          if (agendamentos.length > 0) {
-            data.agendamentos = agendamentos;
-            data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), 0);
-            changed = true;
-          }
-          if (changed) {
-            saveData();
-            renderSchedule(); renderAlunos(); updateStats();
-            showToast('Sincronizado: ' + alunos.length + ' alunos, ' + agendamentos.length + ' aulas', 'success');
-          } else {
-            showToast('Nenhum dado novo encontrado no Firebase.', 'info');
-          }
-        });
+      Promise.all([
+        firebaseDb.collection('alunos').get().catch(() => null),
+        firebaseDb.collection('agendamentos').get().catch(() => null)
+      ]).then(([snap, snap2]) => {
+        const alunos = snap ? snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() })).sort((a,b) => a.nome.localeCompare(b.nome)) : [];
+        const agendamentos = snap2 ? snap2.docs.map(d => ({ id: parseInt(d.id), ...d.data() })).sort((a,b) => a.data.localeCompare(b.data) || a.horario.localeCompare(b.horario)) : [];
+        let changed = false;
+        if (alunos.length > 0) {
+          data.alunos = alunos;
+          data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), 0);
+          changed = true;
+        }
+        if (agendamentos.length > 0) {
+          data.agendamentos = agendamentos;
+          data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), 0);
+          changed = true;
+        }
+        if (changed) {
+          saveData();
+          renderSchedule(); renderAlunos(); updateStats();
+          showToast('Sincronizado: ' + alunos.length + ' alunos, ' + agendamentos.length + ' aulas', 'success');
+        } else {
+          showToast('Nenhum dado novo encontrado no Firebase.', 'info');
+        }
       }).catch(e => {
         console.warn('Sync error:', e);
         showToast('Erro ao sincronizar: ' + e.message, 'error');
