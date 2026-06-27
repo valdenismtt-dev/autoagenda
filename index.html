@@ -1905,7 +1905,7 @@
           // Wait for Auth to restore session before syncing
           if (typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().onAuthStateChanged(user => {
-              dbSyncFromFirebase();
+              if (user) dbSyncFromFirebase();
             });
           } else {
             dbSyncFromFirebase();
