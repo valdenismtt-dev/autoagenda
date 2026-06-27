@@ -933,8 +933,10 @@
 
     function dbSyncFromFirebase() {
       if (!isFirebaseReady()) return;
-      try {
-        Promise.all([dbGetAlunos(), dbGetAgendamentos()]).then(([alunos, agendamentos]) => {
+      firebaseDb.collection('alunos').orderBy('nome').get().then(snap => {
+        const alunos = snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
+        firebaseDb.collection('agendamentos').orderBy('data').orderBy('horario').get().then(snap2 => {
+          const agendamentos = snap2.docs.map(d => ({ id: parseInt(d.id), ...d.data() }));
           let changed = false;
           if (alunos.length > 0) {
             data.alunos = alunos;
@@ -953,8 +955,13 @@
             dbSaveAlunos(data.alunos);
             dbSaveAgendamentos(data.agendamentos);
           }
-        }).catch(() => {});
-      } catch(e) { console.warn('Firebase sync error:', e); }
+        });
+      }).catch(() => {
+        if (data.alunos.length > 0 || data.agendamentos.length > 0) {
+          dbSaveAlunos(data.alunos);
+          dbSaveAgendamentos(data.agendamentos);
+        }
+      });
     }
 
     function getAuth() {
