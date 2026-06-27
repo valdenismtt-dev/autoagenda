@@ -457,7 +457,7 @@
     .alunos-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .alunos-header .input-wrapper { width: 280px; max-width: 100%; }
     .alunos-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); overflow-x: auto; }
-    .alunos-table { width: 100%; border-collapse: collapse; }
+    .alunos-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .alunos-table th {
       text-align: left; padding: 12px 16px; font-size: 11px;
       font-weight: 600; color: var(--text-secondary);
@@ -472,13 +472,6 @@
     .alunos-table .progress-bar { width: 100px; height: 6px; background: var(--bg); border-radius: 100px; overflow: hidden; display: inline-block; }
     .alunos-table .progress-bar .fill { height: 100%; border-radius: 100px; background: var(--primary); transition: width 0.3s; }
     .alunos-table .progress-text { font-size: 13px; color: var(--text-secondary); margin-left: 8px; }
-    .alunos-table .action-btn {
-      width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-      border: 1px solid transparent; border-radius: var(--radius-sm);
-      background: transparent; cursor: pointer; color: var(--text-secondary);
-      transition: all var(--transition); position: relative;
-    }
-    .alunos-table .action-btn:hover { background: var(--hover); border-color: var(--border); }
     .alunos-table .action-btn svg { width: 16px; height: 16px; }
     .action-status-wrap { display: inline-flex; align-items: center; gap: 8px; }
 
@@ -602,7 +595,8 @@
       .slot-right .wa-status { font-size: 11px; gap: 3px; }
       .alunos-table th:nth-child(2), .alunos-table td:nth-child(2) { display: none; }
       .alunos-table th, .alunos-table td { padding: 8px 10px; }
-      .alunos-table .progress-bar { width: 60px; }
+      .alunos-table .progress-bar { width: 60px !important; }
+      .progress-text { font-size: 11px; }
       .stats-bar { grid-template-columns: repeat(2, 1fr); }
       .filter-bar .input-wrapper { width: 100%; }
       .stat-card { padding: 10px 12px; }
@@ -785,7 +779,7 @@
           </div>
           <div class="alunos-table-wrap">
             <table class="alunos-table">
-              <thead><tr><th>Aluno</th><th>WhatsApp</th><th>Categorias</th><th>Aulas</th><th style="width:120px;">Status</th></tr></thead>
+              <thead><tr><th style="width:30%;">Aluno</th><th style="width:18%;">WhatsApp</th><th style="width:18%;">Categorias</th><th style="width:22%;">Aulas</th><th style="width:12%;">Status</th></tr></thead>
               <tbody id="alunosTableBody"></tbody>
             </table>
           </div>
