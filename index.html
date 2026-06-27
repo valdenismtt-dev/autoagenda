@@ -342,8 +342,9 @@
       transition: all var(--transition); display: flex;
     }
     .slot-actions button:hover { color: var(--danger); background: var(--danger-bg); }
-    .slot-actions button svg { width: 15px; height: 15px; }
     .slot-actions .wa-btn:hover { color: var(--primary); background: var(--primary-light); }
+    .slot-actions .reopen-btn:hover { color: var(--warning); background: var(--warning-bg); }
+    .slot-actions button svg { width: 15px; height: 15px; }
     .slot-badge {
       display: inline-flex; align-items: center; gap: 3px;
       padding: 2px 8px; border-radius: 100px;
@@ -1240,7 +1241,7 @@
               <div class="wa-status ${wa.sent ? 'sent' : ''}"><i data-feather="${waIcon}" style="width:12px;height:12px;"></i><span>${wa.label}</span></div>
               <div class="slot-actions">
                 <button class="wa-btn" title="WhatsApp" onclick="event.stopPropagation();window.open('${getWhatsAppLink(aluno, hora, catKey)}', '_blank')"><i data-feather="message-circle"></i></button>
-                ${!concluida ? `<button title="Concluir aula" onclick="event.stopPropagation();concluirAula(${ag.id})"><i data-feather="check"></i></button>` : ''}
+                <button class="${concluida ? 'reopen-btn' : ''}" title="${concluida ? 'Reabrir aula' : 'Concluir aula'}" onclick="event.stopPropagation();concluirAula(${ag.id})"><i data-feather="${concluida ? 'rotate-ccw' : 'check'}"></i></button>
                 <button title="Cancelar" onclick="event.stopPropagation();cancelAppointment(${ag.id})"><i data-feather="x-circle"></i></button>
               </div>
             </div>`;
