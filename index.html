@@ -963,13 +963,14 @@
           if (changed) {
             saveData();
             renderSchedule(); renderAlunos(); updateStats();
-          } else if (data.alunos.length > 0 || data.agendamentos.length > 0) {
-            dbSaveAlunos(data.alunos);
-            dbSaveAgendamentos(data.agendamentos);
+            showToast('Sincronizado: ' + alunos.length + ' alunos, ' + agendamentos.length + ' aulas', 'success');
+          } else {
+            showToast('Nenhum dado novo encontrado no Firebase.', 'info');
           }
         });
-      }).catch(() => {
-        // Firebase query failed (e.g. offline, permission). Keep local data.
+      }).catch(e => {
+        console.warn('Sync error:', e);
+        showToast('Erro ao sincronizar: ' + e.message, 'error');
       });
     }
 
@@ -1812,8 +1813,6 @@
       }
       showToast('Sincronizando...', 'info');
       dbSyncFromFirebase();
-      showToast('Sincronizacao concluida!', 'success');
-      updateFirebaseStatus();
     });
 
     function updateFirebaseStatus() {
