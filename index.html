@@ -888,7 +888,7 @@
     function isFirebaseReady() { return firebaseApp && firebaseDb; }
 
     // Data abstraction: localStorage (default) / Firestore (when configured) — fire-and-forget
-    function dbFb(op) { if (isFirebaseReady() && location.protocol !== 'file:') { op().catch(e => console.warn('FB err:', e)); } }
+    function dbFb(op, label) { if (isFirebaseReady() && location.protocol !== 'file:') { op().catch(e => { console.warn('FB err:', e); if (label) showToast('Erro ao salvar no Firebase: ' + label, 'error'); }); } }
     function dbGetAlunos() {
       if (isFirebaseReady()) {
         return firebaseDb.collection('alunos').orderBy('nome').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
@@ -896,20 +896,20 @@
       return Promise.resolve(data ? data.alunos : []);
     }
     function dbSaveAlunos(alunos) {
-      dbFb(() => { const b = firebaseDb.batch(); alunos.forEach(a => { b.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); return b.commit(); });
+      dbFb(() => { const b = firebaseDb.batch(); alunos.forEach(a => { b.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); return b.commit(); }, 'salvar alunos');
       data.alunos = alunos; saveData();
     }
     function dbAddAluno(aluno) {
-      dbFb(() => firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno));
+      dbFb(() => firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno), 'adicionar aluno');
       data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
     }
     function dbUpdateAluno(id, updates) {
-      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).update(updates));
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).update(updates), 'atualizar aluno');
       const idx = data.alunos.findIndex(a => a.id === id);
       if (idx > -1) { Object.assign(data.alunos[idx], updates); saveData(); }
     }
     function dbDeleteAluno(id) {
-      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).delete());
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).delete(), 'excluir aluno');
       data.alunos = data.alunos.filter(a => a.id !== id); saveData();
     }
     function dbGetAgendamentos() {
@@ -919,15 +919,15 @@
       return Promise.resolve(data ? data.agendamentos : []);
     }
     function dbSaveAgendamentos(agendamentos) {
-      dbFb(() => { const b = firebaseDb.batch(); agendamentos.forEach(a => { b.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); return b.commit(); });
+      dbFb(() => { const b = firebaseDb.batch(); agendamentos.forEach(a => { b.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); return b.commit(); }, 'salvar agendamentos');
       data.agendamentos = agendamentos; saveData();
     }
     function dbAddAgendamento(ag) {
-      dbFb(() => firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag));
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag), 'adicionar agendamento');
       data.agendamentos.push(ag); data.agendamentoIdCounter = Math.max(data.agendamentoIdCounter, ag.id + 1); saveData();
     }
     function dbDeleteAgendamento(id) {
-      dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).delete());
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).delete(), 'excluir agendamento');
       data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
     }
 
