@@ -17,7 +17,6 @@
   <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { overflow-x: hidden; }
     :root {
       --bg: #F8F9FA; --card: #FFFFFF; --text: #1A1D23; --text-secondary: #6B7280;
       --primary: #2563EB; --primary-light: #EFF6FF; --primary-dark: #1D4ED8;
@@ -46,7 +45,7 @@
     }
     input, select, button, textarea { font-family: inherit; font-size: 14px; }
     a { text-decoration: none; color: inherit; }
-    .app { display: flex; min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; overflow-x: hidden; }
 
     .sidebar {
       width: var(--sidebar-w); background: var(--card);
