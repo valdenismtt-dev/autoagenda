@@ -314,15 +314,22 @@
     .slot.lunch .slot-content-text { color: var(--text-secondary); font-size: 13px; }
     .slot.occupied.carro { border-left: 5px solid var(--car); background: linear-gradient(135deg, var(--card) 0%, var(--car-bg) 60%); }
     .slot.occupied.moto { border-left: 5px solid var(--moto); background: linear-gradient(135deg, var(--card) 0%, var(--moto-bg) 60%); }
-    .slot.occupied.carro.concluida { border-left: 5px solid var(--success); background: linear-gradient(135deg, var(--card) 0%, #D1FAE5 60%); }
-    .slot.occupied.moto.concluida { border-left: 5px solid var(--success); background: linear-gradient(135deg, var(--card) 0%, #EDE9FE 60%); }
-    .dark .slot.occupied.carro.concluida { background: linear-gradient(135deg, var(--card) 0%, #064E3B 60%); border-left-color: #34D399; }
-    .dark .slot.occupied.moto.concluida { background: linear-gradient(135deg, var(--card) 0%, #2E1065 60%); border-left-color: #34D399; }
-    .slot.occupied.concluida { opacity: 1; border-right: 4px solid var(--success); }
+    .slot.occupied.carro.concluida { border-left: 5px solid var(--success); background: linear-gradient(135deg, #D1FAE5 0%, var(--card) 40%); }
+    .slot.occupied.moto.concluida { border-left: 5px solid var(--success); background: linear-gradient(135deg, #EDE9FE 0%, var(--card) 40%); }
+    .dark .slot.occupied.carro.concluida { background: linear-gradient(135deg, #064E3B 0%, var(--card) 50%); border-left-color: #34D399; }
+    .dark .slot.occupied.moto.concluida { background: linear-gradient(135deg, #2E1065 0%, var(--card) 50%); border-left-color: #34D399; }
+    .slot.occupied.concluida { border-right: 4px solid var(--success); position: relative; overflow: hidden; }
+    .slot.occupied.concluida::before {
+      content: '✓ CONCLUÍDA'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      font-size: 24px; font-weight: 900; color: var(--success);
+      opacity: 0.08; pointer-events: none; white-space: nowrap;
+      letter-spacing: 3px; line-height: 1;
+    }
     .slot.occupied.concluida .slot-time { color: var(--success); }
     .slot.occupied.concluida .slot-content-name { color: var(--success); }
     .slot.occupied.concluida .slot-content-sub { color: var(--success); }
-    .slot-actions .concluida-badge { font-size: 10px; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+    .slot-actions .concluida-badge { font-size: 10px; font-weight: 700; color: #fff; background: var(--success); display: flex; align-items: center; gap: 4px; white-space: nowrap; padding: 3px 8px; border-radius: 100px; }
     .slot-actions .concluida-badge svg { width: 14px; height: 14px; }
     .slot-time {
       font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
