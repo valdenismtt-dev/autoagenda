@@ -1,6 +1,6 @@
 const CACHE = 'autoagenda-v2';
 const ASSETS = [
-  'autoagenda.html',
+  'index.html',
   'manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa25L7W0Q5n-wU.woff2',
@@ -25,7 +25,7 @@ self.addEventListener('fetch', event => {
         const clone = response.clone();
         caches.open(CACHE).then(cache => cache.put(event.request, clone));
         return response;
-      }).catch(() => caches.match('autoagenda.html')))
+      }).catch(() => caches.match('index.html')))
     );
   }
 });

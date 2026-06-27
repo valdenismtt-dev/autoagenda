@@ -2,7 +2,7 @@
   "name": "AutoAgenda",
   "short_name": "AutoAgenda",
   "description": "Gestão de agenda para auto escolas",
-  "start_url": "autoagenda.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#F8F9FA",
   "theme_color": "#2563EB",

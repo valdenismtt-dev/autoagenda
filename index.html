@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AutoAgenda - Gestão de Auto Escola</title>
+  <meta name="theme-color" content="#2563EB">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232563EB'/%3E%3Cpath d='M16 6a7 7 0 0 1 7 7c0 2-1 3-2 4l-1 1-1 1a3 3 0 1 1-6 0l-1-1-1-1c-1-1-2-2-2-4a7 7 0 0 1 7-7z' fill='white'/%3E%3Cpath d='M12 16h8M16 12v8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232563EB'/%3E%3Cpath d='M16 6a7 7 0 0 1 7 7c0 2-1 3-2 4l-1 1-1 1a3 3 0 1 1-6 0l-1-1-1-1c-1-1-2-2-2-4a7 7 0 0 1 7-7z' fill='white'/%3E%3Cpath d='M12 16h8M16 12v8' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons@4.29.0/dist/feather.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F8F9FA; --card: #FFFFFF; --text: #1A1D23; --text-secondary: #6B7280;
+      --primary: #2563EB; --primary-light: #EFF6FF; --primary-dark: #1D4ED8;
+      --car: #059669; --car-bg: #ECFDF5; --moto: #7C3AED; --moto-bg: #F5F3FF;
+      --success: #10B981; --warning: #F59E0B; --warning-bg: #FFFBEB; --border: #E5E7EB;
+      --danger: #EF4444; --danger-bg: #FEF2F2; --hover: #F3F4F6;
+      --radius-card: 10px; --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+      --sidebar-w: 228px; --bottom-h: 60px; --header-h: 68px;
+      --transition: 0.15s ease;
+    }
+    .dark {
+      --bg: #111827; --card: #1F2937; --text: #F9FAFB; --text-secondary: #9CA3AF;
+      --primary-light: #1E3A5F; --border: #374151; --hover: #374151;
+      --warning-bg: #3B2F0A; --danger-bg: #3B1A1A; --car-bg: #0A3A2A; --moto-bg: #1E1040;
+      --shadow: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+      transition: background var(--transition), color var(--transition);
+    }
+    input, select, button, textarea { font-family: inherit; font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: var(--sidebar-w); background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; height: 100vh;
+      z-index: 100; transition: transform 0.2s, background var(--transition), border-color var(--transition);
+      padding: 20px 16px;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px; margin-bottom: 28px; }
+    .sidebar-logo svg { color: var(--primary); }
+    .sidebar-logo span { font-size: 18px; font-weight: 700; color: var(--text); }
+    .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      cursor: pointer; color: var(--text-secondary);
+      transition: all var(--transition); font-size: 14px; font-weight: 500;
+      position: relative; border: none; background: transparent; width: 100%; text-align: left;
+    }
+    .sidebar-nav-item:hover { background: var(--hover); color: var(--text); }
+    .sidebar-nav-item.active { background: var(--primary-light); color: var(--primary); }
+    .sidebar-nav-item svg { width: 20px; height: 20px; }
+    .sidebar-nav-item .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--primary); position: absolute;
+      left: -6px; top: 50%; transform: translateY(-50%); opacity: 0;
+    }
+    .sidebar-nav-item.active .dot { opacity: 1; }
+    .sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 8px; border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; color: #fff; flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-info .name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .sidebar-user-info .role { font-size: 11px; color: var(--text-secondary); }
+
+    .main-content { flex: 1; margin-left: var(--sidebar-w); min-height: 100vh; }
+    .page-header {
+      padding: 24px 32px 0; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .page-header-left h1 { font-size: 24px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .page-header-left p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+    .page-header-left { display: flex; align-items: center; gap: 12px; }
+    .page-content { padding: 20px 32px 100px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text); font-weight: 500; cursor: pointer;
+      transition: all var(--transition); font-size: 13px;
+    }
+    .btn:hover { background: var(--hover); }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-ghost { background: transparent; border: 1px solid transparent; color: var(--text-secondary); }
+    .btn-ghost:hover { background: var(--hover); color: var(--text); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper svg { position: absolute; left: 12px; width: 16px; height: 16px; color: var(--text-secondary); pointer-events: none; }
+    .input-wrapper input, .input-wrapper select {
+      width: 100%; padding: 9px 12px 9px 36px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--card); color: var(--text); outline: none;
+      transition: border-color var(--transition);
+    }
+    .input-wrapper input:focus, .input-wrapper select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .input-wrapper select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; }
+    .input-wrapper.no-icon input, .input-wrapper.no-icon select { padding-left: 12px; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 12px; font-weight: 500; line-height: 1.4;
+    }
+    .badge-carro { background: var(--car-bg); color: var(--car); }
+    .badge-moto { background: var(--moto-bg); color: var(--moto); }
+    .badge-ativo { background: #ECFDF5; color: #059669; }
+    .dark .badge-ativo { background: #0A3A2A; color: #34D399; }
+    .badge-concluido { background: #F3F4F6; color: #6B7280; }
+    .dark .badge-concluido { background: #374151; color: #9CA3AF; }
+    .badge-pendente { background: var(--warning-bg); color: #B45309; }
+    .dark .badge-pendente { color: #FBBF24; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); transition: background var(--transition), border-color var(--transition); }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin: 16px 32px 0;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-card); padding: 16px 20px;
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 14px;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .stat-icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon svg { width: 20px; height: 20px; }
+    .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+    .stat-icon.green { background: var(--car-bg); color: var(--car); }
+    .stat-icon.purple { background: var(--moto-bg); color: var(--moto); }
+    .stat-icon.amber { background: var(--warning-bg); color: #B45309; }
+    .dark .stat-icon.amber { color: #FBBF24; }
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-info .value { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .stat-info .label { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex; align-items: center; gap: 8px;
+      margin: 12px 32px 0; flex-wrap: wrap;
+    }
+    .filter-bar .input-wrapper { width: 200px; }
+    .chip-group { display: flex; gap: 4px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 12px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text-secondary); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: all var(--transition);
+    }
+    .chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .chip svg { width: 14px; height: 14px; }
+
+    /* DAY SELECTOR */
+    .day-selector {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-card); padding: 6px 8px;
+      margin: 12px 32px 0; box-shadow: var(--shadow);
+      transition: background var(--transition), border-color var(--transition);
+      touch-action: pan-y;
+    }
+    .day-selector .nav-btn {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--card); cursor: pointer; color: var(--text-secondary);
+      flex-shrink: 0; transition: all var(--transition);
+    }
+    .day-selector .nav-btn:hover { background: var(--hover); color: var(--text); }
+    .day-selector .nav-btn svg { width: 16px; height: 16px; }
+    .day-selector .days { flex: 1; display: flex; gap: 4px; overflow-x: auto; justify-content: center; }
+    .day-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      border: none; background: transparent; cursor: pointer;
+      transition: all var(--transition); min-width: 52px; font-family: inherit;
+    }
+    .day-btn:hover { background: var(--hover); }
+    .day-btn .day-name { font-size: 11px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; }
+    .day-btn .day-num { font-size: 15px; font-weight: 600; color: var(--text); }
+    .day-btn.active { background: var(--primary); }
+    .day-btn.active .day-name { color: rgba(255,255,255,0.8); }
+    .day-btn.active .day-num { color: #fff; }
+    .day-btn.today:not(.active) .day-num { position: relative; }
+    .day-btn.today:not(.active) .day-num::after {
+      content: ''; position: absolute; bottom: -4px; left: 50%;
+      transform: translateX(-50%); width: 5px; height: 5px;
+      border-radius: 50%; background: var(--primary);
+    }
+    .day-selector .swipe-indicator { display: none; }
+    @media (max-width: 600px) {
+      .day-selector .swipe-indicator { display: block; font-size: 10px; color: var(--text-secondary); text-align: center; padding: 0 4px; }
+    }
+
+    /* SCHEDULE */
+    .schedule { margin: 12px 32px 0; display: flex; flex-direction: column; gap: 6px; }
+    .schedule.weekly { display: grid; grid-template-columns: 50px repeat(7, 1fr); gap: 4px; overflow-x: auto; }
+    .schedule.weekly .weekly-header {
+      display: contents;
+    }
+    .schedule.weekly .weekly-header > div {
+      padding: 8px 4px; text-align: center; font-size: 11px; font-weight: 600;
+      color: var(--text-secondary); border-bottom: 1px solid var(--border);
+    }
+    .schedule.weekly .weekly-time {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 11px; color: var(--text-secondary); font-weight: 600;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 6px; height: 100%;
+    }
+    .schedule.weekly .weekly-cell {
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 4px; min-height: 36px; cursor: pointer;
+      transition: all var(--transition); font-size: 11px;
+    }
+    .schedule.weekly .weekly-cell:hover { background: var(--primary-light); border-color: var(--primary); }
+    .schedule.weekly .weekly-cell.available { border-style: dashed; border-color: #D1D5DB; }
+    .schedule.weekly .weekly-cell.occupied {
+      display: flex; flex-direction: column; gap: 2px; padding: 4px 6px;
+    }
+    .schedule.weekly .weekly-cell.occupied .wc-name { font-weight: 600; font-size: 11px; color: var(--text); }
+    .schedule.weekly .weekly-cell.occupied .wc-sub { font-size: 10px; color: var(--text-secondary); }
+    .schedule.weekly .weekly-cell.lunch { background: var(--hover); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 10px; }
+
+    /* MONTHLY CALENDAR */
+    .schedule.monthly { display: block; }
+    .month-calendar { width: 100%; }
+    .month-calendar .mc-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
+    .month-calendar .mc-header > div { text-align: center; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; padding: 4px 0; }
+    .month-calendar .mc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .month-calendar .mc-day {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      min-height: 60px; padding: 4px; cursor: pointer;
+      transition: all var(--transition);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .month-calendar .mc-day:hover { border-color: var(--primary); background: var(--primary-light); }
+    .month-calendar .mc-day.other-month { opacity: 0.35; }
+    .month-calendar .mc-day.today { border-color: var(--primary); background: var(--primary-light); }
+    .month-calendar .mc-day .mc-num { font-size: 15px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 4px; }
+    .month-calendar .mc-day .mc-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--primary); color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 999px; min-width: 16px; height: 16px; padding: 0 4px;
+    }
+    @media (max-width: 600px) {
+      .month-calendar .mc-day { min-height: 44px; padding: 3px; }
+    }
+
+    .slot {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-card); padding: 14px 20px;
+      box-shadow: var(--shadow);
+      transition: all var(--transition);
+      animation: slotIn 0.25s ease-out;
+    }
+    @keyframes slotIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .slot.available { border-style: dashed; border-color: #D1D5DB; cursor: pointer; }
+    .slot.available:hover { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 3px rgba(37,99,235,0.06); }
+    .slot.available .slot-time { color: var(--text-secondary); }
+    .slot.available .slot-content-text { color: #9CA3AF; font-size: 13px; }
+    .slot.lunch { background: var(--hover); border-color: var(--border); cursor: default; }
+    .slot.lunch .slot-content-text { color: var(--text-secondary); font-size: 13px; }
+    .slot.occupied.carro { border-left: 5px solid var(--car); background: linear-gradient(135deg, var(--card) 0%, var(--car-bg) 60%); }
+    .slot.occupied.moto { border-left: 5px solid var(--moto); background: linear-gradient(135deg, var(--card) 0%, var(--moto-bg) 60%); }
+    .slot.now { box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    .slot-time {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      min-width: 44px; flex-shrink: 0;
+    }
+    .slot-icon { width: 16px; height: 16px; flex-shrink: 0; }
+    .slot-content { flex: 1; display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+    .slot-content-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .slot-content-name { font-weight: 700; font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .slot-content-sub { font-size: 12px; color: var(--text-secondary); }
+    .slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .slot-right .wa-status { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+    .slot-right .wa-status.sent { color: var(--success); }
+    .slot-right .wa-status svg { width: 13px; height: 13px; }
+    .slot-actions { display: flex; align-items: center; gap: 4px; opacity: 0.5; transition: opacity var(--transition); }
+    .slot:active .slot-actions, .slot:hover .slot-actions { opacity: 1; }
+    .slot-actions button {
+      border: none; background: transparent; cursor: pointer;
+      padding: 4px; border-radius: 4px; color: var(--text-secondary);
+      transition: all var(--transition); display: flex;
+    }
+    .slot-actions button:hover { color: var(--danger); background: var(--danger-bg); }
+    .slot-actions button svg { width: 15px; height: 15px; }
+    .slot-actions .wa-btn:hover { color: var(--primary); background: var(--primary-light); }
+    .slot-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .slot-badge.carro { background: var(--car-bg); color: var(--car); }
+    .slot-badge.moto { background: var(--moto-bg); color: var(--moto); }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: 32px; right: 32px;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+      transition: all 0.15s; z-index: 50;
+    }
+    .fab:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
+    .fab:active { transform: scale(0.95); }
+    .fab svg { width: 24px; height: 24px; }
+
+    /* VIEW TOGGLE */
+    .view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .view-toggle button {
+      padding: 6px 12px; border: none; background: transparent;
+      color: var(--text-secondary); cursor: pointer; font-size: 12px;
+      font-weight: 500; transition: all var(--transition); font-family: inherit;
+    }
+    .view-toggle button.active { background: var(--primary); color: #fff; }
+    .view-toggle button:not(:last-child) { border-right: 1px solid var(--border); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; visibility: hidden;
+      transition: all 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--card); border-radius: 12px;
+      width: 440px; max-width: calc(100vw - 32px);
+      max-height: calc(100vh - 40px); overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.95) translateY(8px);
+      transition: transform 0.2s, background var(--transition);
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 0; }
+    .modal-header h2 { font-size: 18px; font-weight: 600; }
+    .modal-close {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: transparent; cursor: pointer; color: var(--text-secondary);
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--hover); color: var(--text); }
+    .modal-close svg { width: 16px; height: 16px; }
+    .modal-body { padding: 20px 24px 24px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .form-input, .form-select {
+      width: 100%; padding: 9px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--card); color: var(--text); outline: none;
+      transition: border-color var(--transition);
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .form-select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 16px; }
+    .form-error { font-size: 12px; color: var(--danger); margin-top: 4px; display: none; }
+
+    .student-list-radio { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; margin-bottom: 16px; }
+    .student-radio-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); cursor: pointer;
+      transition: all var(--transition);
+    }
+    .student-radio-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .student-radio-item.selected { border-color: var(--primary); background: var(--primary-light); }
+    .student-radio-item .radio-circle {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border); display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .student-radio-item.selected .radio-circle { border-color: var(--primary); }
+    .student-radio-item.selected .radio-circle::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+    .student-radio-info { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .student-radio-info .mini-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0; }
+
+    .alunos-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .alunos-header .input-wrapper { width: 280px; max-width: 100%; }
+    .alunos-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); overflow: hidden; }
+    .alunos-table { width: 100%; border-collapse: collapse; }
+    .alunos-table th {
+      text-align: left; padding: 12px 16px; font-size: 11px;
+      font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border); background: var(--bg);
+    }
+    .alunos-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .alunos-table tr:last-child td { border-bottom: none; }
+    .alunos-table tr:hover td { background: var(--hover); }
+    .alunos-table .aluno-cell { display: flex; align-items: center; gap: 10px; }
+    .alunos-table .aluno-cell .mini-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .alunos-table .progress-bar { width: 100px; height: 6px; background: var(--bg); border-radius: 100px; overflow: hidden; display: inline-block; }
+    .alunos-table .progress-bar .fill { height: 100%; border-radius: 100px; background: var(--primary); transition: width 0.3s; }
+    .alunos-table .progress-text { font-size: 13px; color: var(--text-secondary); margin-left: 8px; }
+    .alunos-table .action-btn {
+      width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid transparent; border-radius: var(--radius-sm);
+      background: transparent; cursor: pointer; color: var(--text-secondary);
+      transition: all var(--transition); position: relative;
+    }
+    .alunos-table .action-btn:hover { background: var(--hover); border-color: var(--border); }
+    .alunos-table .action-btn svg { width: 16px; height: 16px; }
+
+    .action-menu {
+      position: absolute; right: 0; top: 100%; background: var(--card);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg); z-index: 20; min-width: 150px;
+      overflow: hidden; opacity: 0; visibility: hidden;
+      transform: translateY(4px); transition: all var(--transition);
+    }
+    .action-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .action-menu-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13px; color: var(--text); cursor: pointer; transition: background 0.1s; }
+    .action-menu-item:hover { background: var(--hover); }
+    .action-menu-item svg { width: 14px; height: 14px; color: var(--text-secondary); }
+    .action-menu-item.danger { color: var(--danger); }
+    .action-menu-item.danger svg { color: var(--danger); }
+
+    .toast-container { position: fixed; top: 16px; right: 16px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      box-shadow: var(--shadow-lg); min-width: 280px; max-width: 400px;
+      animation: toastIn 0.2s ease-out;
+    }
+    .toast.out { animation: toastOut 0.3s ease-in forwards; }
+    .toast svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .toast.toast-success svg { color: var(--success); }
+    .toast.toast-error svg { color: var(--danger); }
+    .toast.toast-info svg { color: var(--primary); }
+    .toast .toast-msg { font-size: 13px; color: var(--text); flex: 1; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(20px); } }
+
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-h);
+      background: var(--card); border-top: 1px solid var(--border);
+      display: none; align-items: center; justify-content: space-around;
+      z-index: 100; padding: 0 8px;
+    }
+    .bottom-nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 16px; border: none; background: transparent;
+      cursor: pointer; color: var(--text-secondary);
+      transition: color var(--transition); font-family: inherit;
+    }
+    .bottom-nav-item.active { color: var(--primary); }
+    .bottom-nav-item svg { width: 22px; height: 22px; }
+    .bottom-nav-item span { font-size: 10px; font-weight: 500; }
+
+    .page { display: none; }
+    .page.active { display: block; animation: pageIn 0.2s ease-out; }
+    @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .settings-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 32px; text-align: center; }
+    .settings-placeholder svg { width: 48px; height: 48px; color: var(--text-secondary); margin-bottom: 16px; }
+    .settings-placeholder h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .settings-placeholder p { color: var(--text-secondary); font-size: 14px; }
+
+    .no-data { text-align: center; padding: 40px; color: var(--text-secondary); font-size: 14px; }
+    .delete-modal-text { font-size: 14px; color: var(--text-secondary); margin: 8px 0 16px; }
+
+    .export-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+    .export-actions .btn { width: 100%; justify-content: center; }
+
+    /* LOGIN SCREEN */
+    .login-screen {
+      position: fixed; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .login-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .login-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 40px 36px 32px;
+      width: 380px; max-width: calc(100vw - 32px);
+      box-shadow: var(--shadow-lg);
+    }
+    .login-logo { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 32px; }
+    .login-logo svg { color: var(--primary); }
+    .login-logo span { font-size: 22px; font-weight: 700; color: var(--text); }
+    .login-title { text-align: center; font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .login-sub { text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+    .login-error { font-size: 12px; color: var(--danger); text-align: center; margin-bottom: 12px; display: none; }
+    .login-card .form-group { margin-bottom: 14px; }
+    .login-card .form-input { padding: 10px 14px; }
+    .login-card .btn-primary { width: 100%; justify-content: center; padding: 10px; margin-top: 4px; }
+
+    /* Skeleton */
+    .skeleton { background: linear-gradient(90deg, var(--border) 25%, var(--hover) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 1023px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .bottom-nav { display: flex; }
+      .main-content { padding-bottom: var(--bottom-h); }
+      .fab { bottom: calc(var(--bottom-h) + 16px); right: 16px; width: 48px; height: 48px; }
+      .page-header { padding: 20px 20px 0; }
+      .stats-bar { margin: 12px 20px 0; grid-template-columns: repeat(2, 1fr); }
+      .filter-bar { margin: 12px 20px 0; }
+      .day-selector { margin: 12px 20px 0; }
+      .schedule { margin: 12px 20px 0; }
+      .page-content { padding: 16px 20px 100px; }
+      .modal { width: calc(100vw - 24px); }
+      .alunos-header { flex-direction: column; align-items: stretch; }
+      .alunos-header .input-wrapper { width: 100%; }
+      .alunos-table th:nth-child(3), .alunos-table td:nth-child(3) { display: none; }
+      .menu-toggle { display: flex !important; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); cursor: pointer; color: var(--text); }
+    }
+    @media (min-width: 1024px) { .menu-toggle { display: none !important; } .sidebar { transform: translateX(0) !important; } }
+    @media (max-width: 600px) {
+      .slot { gap: 6px; padding: 10px 12px; flex-wrap: nowrap; }
+      .slot-time { font-size: 13px; min-width: 36px; }
+      .slot-content-name { font-size: 14px; }
+      .slot-content-sub { font-size: 11px; }
+      .slot-right { flex-direction: row; align-items: center; gap: 6px; flex-shrink: 0; width: auto; }
+      .slot-right .wa-status { font-size: 11px; gap: 3px; }
+      .alunos-table th:nth-child(4), .alunos-table td:nth-child(4) { display: none; }
+      .alunos-table th, .alunos-table td { padding: 8px 10px; }
+      .alunos-table .progress-bar { width: 50px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .filter-bar .input-wrapper { width: 100%; }
+      .stat-card { padding: 10px 12px; }
+      .stat-card .value { font-size: 18px; }
+      .stat-card .label { font-size: 10px; }
+      .login-card { padding: 24px 16px 20px; }
+      .modal { width: calc(100vw - 16px); max-height: 90vh; overflow-y: auto; }
+      .modal-body { padding: 12px; }
+      .modal-header { padding: 12px 12px 0; }
+      .modal-header h2 { font-size: 15px; }
+      .student-list-radio { max-height: 160px; }
+      .student-radio-item { padding: 10px; min-height: 44px; }
+      .student-radio-item .radio-circle { width: 20px; height: 20px; }
+      .student-radio-item .student-radio-info strong { font-size: 14px; }
+      .form-input, .form-select { padding: 10px; font-size: 15px; }
+      .btn { padding: 10px 16px; font-size: 13px; min-height: 40px; }
+      .page-header { padding: 12px 12px 0; }
+      .page-header h1 { font-size: 18px; }
+      .stats-bar { margin: 8px 12px 0; gap: 6px; }
+      .filter-bar { margin: 8px 12px 0; gap: 6px; }
+      .day-selector { margin: 8px 12px 0; }
+      .schedule { margin: 8px 12px 0; gap: 4px; }
+      .page-content { padding: 8px 12px 80px; }
+      .table-wrap { overflow-x: auto; }
+      .sidebar-logo span { font-size: 16px; }
+      .fab { width: 48px; height: 48px; bottom: calc(var(--bottom-h) + 8px); right: 8px; }
+      .fab svg { width: 20px; height: 20px; }
+      .day-arrow { width: 32px; height: 32px; }
+      .day-arrow svg { width: 16px; height: 16px; }
+      .day-btn { padding: 4px 8px; font-size: 11px; min-width: 32px; }
+      .day-btn .day-num { font-size: 14px; }
+      .day-btn .day-label { font-size: 9px; }
+      .schedule.weekly { font-size: 10px; }
+      .schedule.weekly .weekly-time { font-size: 10px; }
+      .schedule.weekly .weekly-cell { min-height: 28px; padding: 2px; font-size: 10px; }
+      .schedule.weekly .weekly-cell.occupied .wc-name { font-size: 10px; }
+      .schedule.weekly .weekly-cell.occupied .wc-sub { font-size: 9px; }
+      .schedule.weekly .weekly-header > div { font-size: 10px; padding: 4px 2px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN SCREEN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 1 7 7c0 2-1 3-2 4l-1 1-1 1a3 3 0 1 1-6 0l-1-1-1-1c-1-1-2-2-2-4a7 7 0 0 1 7-7z"/>
+          <path d="M9 12h6"/><path d="M12 9v6"/>
+        </svg>
+        <span>AutoAgenda</span>
+      </div>
+      <div class="login-title">Entrar</div>
+      <div class="login-sub">Faça login para acessar o sistema</div>
+      <div id="googleSignInBtn" style="display:none;justify-content:center;margin-bottom:16px;"></div>
+      <div id="loginDivider" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--text-secondary);">ou entre com senha</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <div class="login-error" id="loginError">Usuário ou senha inválidos</div>
+      <div class="form-group">
+        <label class="form-label">Usuário</label>
+        <input type="text" class="form-input" id="loginUser" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-input" id="loginPass" placeholder="••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="loginBtn">Entrar</button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 1 7 7c0 2-1 3-2 4l-1 1-1 1a3 3 0 1 1-6 0l-1-1-1-1c-1-1-2-2-2-4a7 7 0 0 1 7-7z"/>
+          <path d="M9 12h6"/><path d="M12 9v6"/>
+        </svg>
+        <span>AutoAgenda</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-nav-item active" data-page="agenda">
+          <span class="dot"></span><i data-feather="calendar"></i><span>Agenda</span>
+        </div>
+        <div class="sidebar-nav-item" data-page="alunos">
+          <span class="dot"></span><i data-feather="users"></i><span>Alunos</span>
+        </div>
+        <div class="sidebar-nav-item" data-page="config">
+          <span class="dot"></span><i data-feather="settings"></i><span>Configurações</span>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-nav-item" id="darkModeToggle" style="cursor:pointer;">
+          <i data-feather="moon"></i><span>Modo escuro</span>
+        </div>
+      </nav>
+      <div class="sidebar-user" id="sidebarUser">
+        <div class="avatar" style="background:#2563EB;">CS</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebarUserName">Carlos Silva</div>
+          <div class="role">Instrutor</div>
+        </div>
+        <button id="logoutBtn" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--text-secondary);transition:all var(--transition);flex-shrink:0;" title="Sair">
+          <i data-feather="log-out" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+            <i data-feather="menu"></i>
+          </button>
+          <div>
+            <h1 id="pageTitle">Agenda</h1>
+            <p id="pageSubtitle"></p>
+          </div>
+        </div>
+        <div id="pageHeaderRight" style="display:flex;align-items:center;gap:8px;"></div>
+      </div>
+
+      <!-- STATS BAR -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card"><div class="stat-icon blue"><i data-feather="calendar"></i></div><div class="stat-info"><span class="value" id="statHoje">0</span><span class="label">Aulas hoje</span></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i data-feather="clock"></i></div><div class="stat-info"><span class="value" id="statSemana">0</span><span class="label">Aulas na semana</span></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><i data-feather="users"></i></div><div class="stat-info"><span class="value" id="statAlunos">0</span><span class="label">Alunos ativos</span></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i data-feather="check-circle"></i></div><div class="stat-info"><span class="value" id="statConcluidas">0</span><span class="label">Aulas concluídas</span></div></div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="chip-group" id="filterChips">
+          <button class="chip active" data-filter="all"><i data-feather="list" style="width:12px;height:12px;"></i> Todas</button>
+          <button class="chip" data-filter="carro"><i data-feather="chevron-right" style="width:12px;height:12px;"></i> Carro</button>
+          <button class="chip" data-filter="moto"><i data-feather="chevron-right" style="width:12px;height:12px;"></i> Moto</button>
+        </div>
+        <div class="input-wrapper" style="width:160px;">
+          <i data-feather="search" style="width:14px;height:14px;"></i>
+          <input type="text" id="agendaSearch" placeholder="Buscar aluno..." style="padding:6px 10px 6px 30px;font-size:12px;">
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <div class="view-toggle" id="viewToggle">
+            <button class="active" data-view="day">Dia</button>
+            <button data-view="week">Semana</button>
+            <button data-view="month">Mês</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAY SELECTOR -->
+      <div class="day-selector" id="daySelector">
+        <button class="nav-btn" id="prevWeek" aria-label="Anterior"><i data-feather="chevron-left"></i></button>
+        <div class="days" id="daysContainer"></div>
+        <button class="nav-btn" id="nextWeek" aria-label="Próximo"><i data-feather="chevron-right"></i></button>
+      </div>
+
+      <!-- MONTH SELECTOR -->
+      <div class="day-selector" id="monthSelector" style="display:none;">
+        <button class="nav-btn" id="prevMonth" aria-label="Mês anterior"><i data-feather="chevron-left"></i></button>
+        <div style="flex:1;text-align:center;font-weight:600;font-size:15px;" id="monthLabel">Junho 2026</div>
+        <button class="nav-btn" id="nextMonth" aria-label="Próximo mês"><i data-feather="chevron-right"></i></button>
+      </div>
+
+      <!-- PAGES -->
+      <div class="page-content">
+        <div class="page active" id="pageAgenda">
+          <div class="schedule" id="scheduleContainer"></div>
+        </div>
+        <div class="page" id="pageAlunos">
+          <div class="alunos-header">
+            <div class="input-wrapper"><i data-feather="search"></i><input type="text" id="alunoSearch" placeholder="Buscar alunos..."></div>
+            <button class="btn btn-primary" id="newAlunoBtn"><i data-feather="plus"></i> Novo Aluno</button>
+          </div>
+          <div class="alunos-table-wrap">
+            <table class="alunos-table">
+              <thead><tr><th>Aluno</th><th>WhatsApp</th><th>Categorias</th><th>Aulas</th><th>Status</th><th style="width:40px;"></th></tr></thead>
+              <tbody id="alunosTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="page" id="pageConfig">
+          <div class="settings-placeholder">
+            <i data-feather="settings"></i>
+            <h3>Configurações</h3>
+            <p style="margin-bottom:24px;">Personalize as configurações da sua auto escola.</p>
+            <div style="text-align:left;max-width:360px;margin:0 auto;">
+              <div class="form-group">
+                <label class="form-label">Nome do instrutor</label>
+                <input type="text" class="form-input" id="configNome" placeholder="Carlos Silva">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alterar senha</label>
+                <input type="password" class="form-input" id="configSenhaAtual" placeholder="Senha atual" style="margin-bottom:8px;">
+                <input type="password" class="form-input" id="configSenhaNova" placeholder="Nova senha">
+                <div class="form-error" id="configSenhaError" style="margin-top:6px;">Senha atual incorreta</div>
+              </div>
+              <div class="form-group" style="border-top:1px solid var(--border);padding-top:16px;margin-top:16px;">
+                <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+                  <i data-feather="zap" style="width:14px;height:14px;color:var(--warning);"></i> Firebase (opcional)
+                </label>
+                <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Configure para dados na nuvem e login com Google</div>
+                <input type="text" class="form-input" id="configFirebaseApiKey" placeholder="API Key" style="margin-bottom:6px;">
+                <input type="text" class="form-input" id="configFirebaseProjectId" placeholder="Project ID" style="margin-bottom:6px;">
+                <input type="text" class="form-input" id="configFirebaseAppId" placeholder="App ID" style="margin-bottom:6px;">
+                <input type="text" class="form-input" id="configFirebaseAuthDomain" placeholder="Auth Domain (opcional)" style="margin-bottom:6px;">
+                <input type="text" class="form-input" id="configFirebaseStorageBucket" placeholder="Storage Bucket (opcional)" style="margin-bottom:6px;">
+                <input type="text" class="form-input" id="configFirebaseMessagingSenderId" placeholder="Messaging Sender ID (opcional)" style="margin-bottom:6px;">
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Pegue esses dados em <a href="https://console.firebase.google.com" target="_blank" style="color:var(--primary);">Firebase Console</a> > Configurações do projeto > Seus apps > Web</div>
+              </div>
+              <button class="btn btn-primary" id="configSaveBtn" style="width:100%;justify-content:center;margin-bottom:24px;"><i data-feather="check"></i> Salvar</button>
+            </div>
+            <div class="export-actions">
+              <button class="btn btn-primary" id="exportJsonBtn"><i data-feather="download"></i> Exportar Dados (JSON)</button>
+              <button class="btn btn-outline" id="exportPrintBtn"><i data-feather="printer"></i> Imprimir Agenda</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <button class="fab" id="fabBtn" aria-label="Nova aula"><i data-feather="plus"></i></button>
+
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="bottom-nav-item active" data-page="agenda"><i data-feather="calendar"></i><span>Agenda</span></button>
+      <button class="bottom-nav-item" data-page="alunos"><i data-feather="users"></i><span>Alunos</span></button>
+      <button class="bottom-nav-item" data-page="config"><i data-feather="settings"></i><span>Config</span></button>
+    </nav>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContent">
+      <div class="modal-header"><h2 id="modalTitle">Nova Aula</h2><button class="modal-close" id="modalClose" aria-label="Fechar"><i data-feather="x"></i></button></div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const STORAGE_KEY = 'autoagenda_data';
+    const DARK_KEY = 'autoagenda_dark';
+    const AUTH_KEY = 'autoagenda_auth';
+    const FIREBASE_KEY = 'autoagenda_firebase';
+    const DEFAULT_USER = 'admin';
+    const DEFAULT_PASS = 'admin';
+
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAe6GB_LdyBTBQJf1gYPT3LzI5eETCog2g",
+      authDomain: "autoagenda-cce70.firebaseapp.com",
+      projectId: "autoagenda-cce70",
+      storageBucket: "autoagenda-cce70.firebasestorage.app",
+      messagingSenderId: "961311162766",
+      appId: "1:961311162766:web:8c3e898793a0287869e4df"
+    };
+
+    // ===== FIREBASE =====
+    let firebaseApp = null;
+    let firebaseDb = null;
+
+    function getFirebaseConfig() {
+      try { return JSON.parse(localStorage.getItem(FIREBASE_KEY)) || FIREBASE_CONFIG; } catch(e) { return FIREBASE_CONFIG; }
+    }
+    function saveFirebaseConfig(config) { localStorage.setItem(FIREBASE_KEY, JSON.stringify(config)); }
+
+    function initFirebase() {
+      const cfg = getFirebaseConfig();
+      if (!cfg || !cfg.apiKey) return false;
+      try {
+        if (firebase.apps.length) { firebaseApp = firebase.app(); firebaseDb = firebaseApp.firestore(); return true; }
+        firebaseApp = firebase.initializeApp(cfg);
+        firebaseDb = firebaseApp.firestore();
+        firebaseDb.settings({ merge: true });
+        return true;
+      } catch(e) { console.warn('Firebase init error:', e); return false; }
+    }
+
+    function isFirebaseReady() { return firebaseApp && firebaseDb; }
+
+    // Data abstraction: localStorage (default) / Firestore (when configured) — fire-and-forget
+    function dbFb(op) { if (isFirebaseReady() && location.protocol !== 'file:') { op().catch(e => console.warn('FB err:', e)); } }
+    function dbGetAlunos() {
+      if (isFirebaseReady()) {
+        return firebaseDb.collection('alunos').orderBy('nome').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
+      }
+      return Promise.resolve(data ? data.alunos : []);
+    }
+    function dbSaveAlunos(alunos) {
+      dbFb(() => { const b = firebaseDb.batch(); alunos.forEach(a => { b.set(firebaseDb.collection('alunos').doc(String(a.id)), a); }); return b.commit(); });
+      data.alunos = alunos; saveData();
+    }
+    function dbAddAluno(aluno) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(aluno.id)).set(aluno));
+      data.alunos.push(aluno); data.alunoIdCounter = Math.max(data.alunoIdCounter, aluno.id + 1); saveData();
+    }
+    function dbUpdateAluno(id, updates) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).update(updates));
+      const idx = data.alunos.findIndex(a => a.id === id);
+      if (idx > -1) { Object.assign(data.alunos[idx], updates); saveData(); }
+    }
+    function dbDeleteAluno(id) {
+      dbFb(() => firebaseDb.collection('alunos').doc(String(id)).delete());
+      data.alunos = data.alunos.filter(a => a.id !== id); saveData();
+    }
+    function dbGetAgendamentos() {
+      if (isFirebaseReady()) {
+        return firebaseDb.collection('agendamentos').orderBy('data').orderBy('horario').get().then(snap => snap.docs.map(d => ({ id: parseInt(d.id), ...d.data() }))).catch(() => []);
+      }
+      return Promise.resolve(data ? data.agendamentos : []);
+    }
+    function dbSaveAgendamentos(agendamentos) {
+      dbFb(() => { const b = firebaseDb.batch(); agendamentos.forEach(a => { b.set(firebaseDb.collection('agendamentos').doc(String(a.id)), a); }); return b.commit(); });
+      data.agendamentos = agendamentos; saveData();
+    }
+    function dbAddAgendamento(ag) {
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(ag.id)).set(ag));
+      data.agendamentos.push(ag); data.agendamentoIdCounter = Math.max(data.agendamentoIdCounter, ag.id + 1); saveData();
+    }
+    function dbDeleteAgendamento(id) {
+      dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).delete());
+      data.agendamentos = data.agendamentos.filter(a => a.id !== id); saveData();
+    }
+
+    function dbSyncFromFirebase() {
+      if (!isFirebaseReady()) return;
+      try {
+        const localCount = data.alunos.length + data.agendamentos.length;
+        if (localCount === 0) {
+          dbGetAlunos().then(alunos => {
+            if (alunos.length) { data.alunos = alunos; data.alunoIdCounter = alunos.reduce((max, a) => Math.max(max, a.id + 1), data.alunoIdCounter); }
+            dbGetAgendamentos().then(agendamentos => {
+              if (agendamentos.length) { data.agendamentos = agendamentos; data.agendamentoIdCounter = agendamentos.reduce((max, a) => Math.max(max, a.id + 1), data.agendamentoIdCounter); }
+              saveData();
+            });
+          }).catch(() => {});
+        } else {
+          dbSaveAlunos(data.alunos);
+          dbSaveAgendamentos(data.agendamentos);
+        }
+      } catch(e) { console.warn('Firebase sync error:', e); }
+    }
+
+    function getAuth() {
+      let authStr = localStorage.getItem(AUTH_KEY);
+      if (!authStr) {
+        const def = { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false };
+        localStorage.setItem(AUTH_KEY, JSON.stringify(def));
+        return def;
+      }
+      try { return JSON.parse(authStr); } catch(e) { return { user: DEFAULT_USER, pass: DEFAULT_PASS, nome: 'Carlos Silva', authenticated: false }; }
+    }
+    function saveAuth(auth) { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); }
+
+    // ===== FIREBASE AUTH (Google Sign-In) =====
+    let firebaseGooglePending = false;
+
+    function initFirebaseAuth() {
+      try { if (!isFirebaseReady() || typeof firebase === 'undefined') return; } catch(e) { return; }
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+      const btn = document.getElementById('googleSignInBtn');
+      if (!btn) return;
+      btn.innerHTML = '';
+      btn.style.display = 'flex';
+      btn.style.cursor = 'pointer';
+      btn.style.border = '1px solid var(--border)';
+      btn.style.borderRadius = '100px';
+      btn.style.padding = '10px 24px';
+      btn.style.background = 'var(--card)';
+      btn.style.transition = 'all 0.15s';
+      btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" style="margin-right:8px;"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Entrar com Google`;
+      btn.onclick = async () => {
+        try {
+          const result = await firebase.auth().signInWithPopup(provider);
+          const user = result.user;
+          const auth = getAuth();
+          auth.user = user.email;
+          auth.nome = user.displayName || user.email;
+          auth.authenticated = true;
+          saveAuth(auth);
+          document.getElementById('sidebarUserName').textContent = auth.nome;
+          const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+          document.querySelector('#sidebarUser .avatar').textContent = initials;
+          document.getElementById('loginScreen').classList.add('hidden');
+          await dbSyncFromFirebase();
+          initApp();
+        } catch(e) {
+          if (e.code !== 'auth/popup-closed-by-user') showToast('Erro ao entrar com Google: ' + e.message, 'error');
+        }
+      };
+
+    }
+
+    function doLogin() {
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      const auth = getAuth();
+      if (user === auth.user && pass === auth.pass) {
+        auth.authenticated = true; saveAuth(auth);
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('loginError').style.display = 'none';
+        if (auth.nome) {
+          document.getElementById('sidebarUserName').textContent = auth.nome;
+          const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+          document.querySelector('#sidebarUser .avatar').textContent = initials;
+        }
+        document.getElementById('loginPass').value = '';
+        initApp();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('loginPass').value = '';
+      }
+    }
+
+    function doLogout() {
+      const auth = getAuth(); auth.authenticated = false; saveAuth(auth);
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('loginUser').value = '';
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginError').style.display = 'none';
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      if (isFirebaseReady()) initFirebaseAuth();
+    }
+    const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const CATEGORIES = { carro: 'Carro', moto: 'Moto' };
+    const CAT_COLORS = { carro: { bg: '#ECFDF5', text: '#059669' }, moto: { bg: '#F5F3FF', text: '#7C3AED' } };
+
+    const alunosIniciais = [
+      { id: 1, nome: 'João Silva', whatsapp: '11999990001', categorias: ['carro'], aulasFeitas: { carro: 5, moto: 0 }, totalAulas: { carro: 20, moto: 20 }, status: 'ativo' },
+      { id: 2, nome: 'Maria Souza', whatsapp: '11999990002', categorias: ['moto'], aulasFeitas: { carro: 0, moto: 12 }, totalAulas: { carro: 20, moto: 15 }, status: 'ativo' },
+      { id: 3, nome: 'Pedro Santos', whatsapp: '11999990003', categorias: ['carro', 'moto'], aulasFeitas: { carro: 1, moto: 0 }, totalAulas: { carro: 20, moto: 20 }, status: 'ativo' },
+      { id: 4, nome: 'Ana Lima', whatsapp: '11999990004', categorias: ['carro'], aulasFeitas: { carro: 18, moto: 0 }, totalAulas: { carro: 20, moto: 20 }, status: 'ativo' }
+    ];
+
+    const today = new Date();
+    const todayStr = formatDateStr(today);
+
+    const agendamentosIniciais = [
+      { id: 1, alunoId: 1, categoria: 'carro', data: todayStr, horario: '08:00', status: 'confirmado' },
+      { id: 2, alunoId: 2, categoria: 'moto', data: todayStr, horario: '09:00', status: 'confirmado' },
+      { id: 3, alunoId: 3, categoria: 'carro', data: todayStr, horario: '11:00', status: 'confirmado' },
+      { id: 4, alunoId: 4, categoria: 'carro', data: todayStr, horario: '14:00', status: 'confirmado' }
+    ];
+
+    let data = loadData();
+    let monthOffset = 0;
+    let state = { currentPage: 'agenda', selectedDate: todayStr, selectedHour: null, editingAluno: null, viewMode: 'day', filterCategoria: 'all', filterSearch: '' };
+
+    // ===== DARK MODE =====
+    if (localStorage.getItem(DARK_KEY) === 'true') document.documentElement.classList.add('dark');
+    function toggleDark() { document.documentElement.classList.toggle('dark'); localStorage.setItem(DARK_KEY, document.documentElement.classList.contains('dark')); updateDarkIcon(); }
+    function updateDarkIcon() { const isDark = document.documentElement.classList.contains('dark'); document.querySelectorAll('#darkModeToggle i').forEach(el => { el.setAttribute('data-feather', isDark ? 'sun' : 'moon'); }); try { feather.replace(); } catch(e) {} }
+    document.getElementById('darkModeToggle').addEventListener('click', toggleDark);
+    updateDarkIcon();
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.alunos) return parsed;
+        } catch(e) {}
+      }
+      const initial = { alunos: alunosIniciais, agendamentos: agendamentosIniciais, agendamentoIdCounter: 5, alunoIdCounter: 5 };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      return initial;
+    }
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    function getAluno(id) { return data.alunos.find(a => a.id === id); }
+    function getAgendamentosByDate(dateStr) { return data.agendamentos.filter(a => a.data === dateStr); }
+    function getAgendamentosByWeek(dateStr) { const d = parseDate(dateStr); const start = getWeekStart(d); const end = new Date(start); end.setDate(end.getDate() + 7); return data.agendamentos.filter(a => { const ad = parseDate(a.data); return ad >= start && ad < end; }); }
+    function getAlunoProgress(aluno) { return Math.round((aluno.aulasFeitas / aluno.totalAulas) * 100); }
+
+    function formatDateStr(d) { const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+    function parseDate(str) { const [y,m,d] = str.split('-').map(Number); return new Date(y,m-1,d); }
+    function getWeekStart(date) { const d = new Date(date); const day = d.getDay(); const diff = d.getDate() - day + (day === 0 ? -6 : 1); d.setDate(diff); d.setHours(0,0,0,0); return d; }
+    function getWeekDates(start) { const dates = []; for (let i=0;i<7;i++) { const d = new Date(start); d.setDate(start.getDate()+i); dates.push(d); } return dates; }
+    function formatFullDate(date) { const dw = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']; return `${dw[date.getDay()]}, ${date.getDate()} de ${MONTHS[date.getMonth()]} de ${date.getFullYear()}`; }
+    function getInitials(name) { return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+    function getAvatarColor(name) { const colors=['#2563EB','#7C3AED','#059669','#DC2626','#D97706','#0891B2','#DB2777']; let hash=0; for(let i=0;i<name.length;i++) hash=name.charCodeAt(i)+((hash<<5)-hash); return colors[Math.abs(hash)%colors.length]; }
+
+    function getWhatsAppStatus(ag) {
+      const now = new Date(); const [h,m] = ag.horario.split(':').map(Number);
+      const aulaTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+      const tresHorasAntes = new Date(aulaTime.getTime() - 3*60*60*1000);
+      if (now >= tresHorasAntes) return { sent: true, label: `Enviado ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}` };
+      return { sent: false, label: `Programado para ${String(tresHorasAntes.getHours()).padStart(2,'0')}:${String(tresHorasAntes.getMinutes()).padStart(2,'0')}` };
+    }
+    function getWhatsAppLink(aluno, horario, categoria) {
+      const nome = encodeURIComponent(aluno.nome); const cat = CATEGORIES[categoria] || aluno.categorias[0] || 'Carro';
+      return `https://wa.me/55${aluno.whatsapp}?text=Ol%C3%A1%20${nome}!%20Sua%20aula%20de%20${cat}%20%C3%A9%20hoje%20%C3%A0s%20${horario}.%20At%C3%A9%20l%C3%A1!`;
+    }
+    function getCatIcon(size) { const s=size||14; return { carro: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:${s}px;height:${s}px;"><path d="M5 17h14M5 17a2 2 0 0 1-2-2V9a1 1 0 0 1 1-1h1l2-3h6l2 3h1a1 1 0 0 1 1 1v6a2 2 0 0 1-2 2"/><circle cx="7" cy="15" r="1.5"/><circle cx="17" cy="15" r="1.5"/></svg>`, moto: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:${s}px;height:${s}px;"><circle cx="6" cy="15" r="3"/><circle cx="18" cy="15" r="3"/><path d="M6 15l3-6h4l2-3"/><path d="M9 9l-3 6"/><path d="M16 6h3v3"/></svg>` }; }
+
+    function isHorarioInPast(dateStr, horario) {
+      const now = new Date(); const [h,m] = horario.split(':').map(Number);
+      const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+      return dateStr === formatDateStr(now) && target <= now;
+    }
+
+    function navigate(page) {
+      state.currentPage = page;
+      document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+      document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      const pageEl = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
+      if (pageEl) pageEl.classList.add('active');
+
+      const titles = { agenda: 'Agenda', alunos: 'Alunos', config: 'Configurações' };
+      document.getElementById('pageTitle').textContent = titles[page] || 'Agenda';
+      const headerRight = document.getElementById('pageHeaderRight');
+      const subtitle = document.getElementById('pageSubtitle');
+      const daySel = document.getElementById('daySelector');
+      const monthSel = document.getElementById('monthSelector');
+      const fab = document.getElementById('fabBtn');
+      const stats = document.getElementById('statsBar');
+      const filter = document.querySelector('.filter-bar');
+
+      if (page === 'agenda') {
+        subtitle.textContent = formatFullDate(parseDate(state.selectedDate));
+        daySel.style.display = state.viewMode === 'month' ? 'none' : 'flex';
+        monthSel.style.display = state.viewMode === 'month' ? 'flex' : 'none';
+        fab.style.display = 'flex'; stats.style.display = 'grid'; filter.style.display = 'flex';
+        headerRight.innerHTML = '';
+        updateStats();
+        renderDaySelector();
+        renderSchedule();
+      } else if (page === 'alunos') {
+        subtitle.textContent = ''; daySel.style.display = 'none'; monthSel.style.display = 'none'; fab.style.display = 'none'; stats.style.display = 'none'; filter.style.display = 'none';
+        headerRight.innerHTML = '';
+        renderAlunos(document.getElementById('alunoSearch').value);
+      } else {
+        subtitle.textContent = ''; daySel.style.display = 'none'; monthSel.style.display = 'none'; fab.style.display = 'none'; stats.style.display = 'none'; filter.style.display = 'none';
+        headerRight.innerHTML = '';
+      }
+      try { feather.replace(); } catch(e) {}
+    }
+
+    function showToast(message, type) {
+      type = type || 'success';
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '<i data-feather="check-circle"></i>', error: '<i data-feather="alert-circle"></i>', info: '<i data-feather="info"></i>' };
+      const div = document.createElement('div'); div.className = `toast toast-${type}`;
+      div.innerHTML = `${icons[type]||icons.info} <span class="toast-msg">${message}</span>`;
+      container.appendChild(div); try { feather.replace(); } catch(e) {}
+      setTimeout(() => { div.classList.add('out'); setTimeout(() => div.remove(), 300); }, 3000);
+    }
+
+    // ===== STATS =====
+    function updateStats() {
+      const hoje = getAgendamentosByDate(state.selectedDate).length;
+      const weekStart = getWeekStart(parseDate(state.selectedDate));
+      const weekDates = getWeekDates(weekStart);
+      let semana = 0;
+      weekDates.forEach(d => { semana += getAgendamentosByDate(formatDateStr(d)).length; });
+      const ativos = data.alunos.filter(a => a.status === 'ativo').length;
+      const concluidas = data.alunos.reduce((acc, a) => {
+        let sum = 0;
+        (a.categorias||[]).forEach(c => { sum += (a.aulasFeitas[c]||0); });
+        return acc + sum;
+      }, 0);
+      document.getElementById('statHoje').textContent = hoje;
+      document.getElementById('statSemana').textContent = semana;
+      document.getElementById('statAlunos').textContent = ativos;
+      document.getElementById('statConcluidas').textContent = concluidas;
+    }
+
+    // ===== DAY SELECTOR =====
+    let weekOffset = 0;
+    function renderDaySelector() {
+      const todayLocal = new Date(); const base = new Date(todayLocal); base.setDate(base.getDate() + weekOffset * 7);
+      const weekStart = getWeekStart(base); const dates = getWeekDates(weekStart);
+      const container = document.getElementById('daysContainer'); container.innerHTML = '';
+      dates.forEach(d => {
+        const dateStr = formatDateStr(d); const isToday = dateStr === formatDateStr(todayLocal);
+        const isSelected = dateStr === state.selectedDate;
+        const btn = document.createElement('button');
+        btn.className = 'day-btn' + (isSelected ? ' active' : '') + (isToday && !isSelected ? ' today' : '');
+        btn.innerHTML = `<span class="day-name">${WEEKDAYS[d.getDay()]}</span><span class="day-num">${String(d.getDate()).padStart(2,'0')}</span>`;
+        btn.addEventListener('click', () => { state.selectedDate = dateStr; renderDaySelector(); renderSchedule(); updateStats(); document.getElementById('pageSubtitle').textContent = formatFullDate(d); });
+        container.appendChild(btn);
+      });
+    }
+    document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; renderDaySelector(); renderSchedule(); });
+    document.getElementById('nextWeek').addEventListener('click', () => { weekOffset++; renderDaySelector(); renderSchedule(); });
+
+    // ===== SWIPE =====
+    let touchStartX = 0;
+    document.getElementById('daySelector').addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    document.getElementById('daySelector').addEventListener('touchend', e => {
+      const diff = touchStartX - e.changedTouches[0].screenX;
+      if (Math.abs(diff) > 40) { if (diff > 0) document.getElementById('nextWeek').click(); else document.getElementById('prevWeek').click(); }
+    }, { passive: true });
+
+    // ===== SCHEDULE =====
+    function renderSchedule() {
+      const container = document.getElementById('scheduleContainer');
+      const agendamentos = getAgendamentosByDate(state.selectedDate);
+      const allHoras = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
+
+      // Filter
+      const filtered = state.filterCategoria === 'all' ? agendamentos : agendamentos.filter(a => a.categoria === state.filterCategoria);
+      const searchQ = state.filterSearch.toLowerCase();
+
+      container.innerHTML = '';
+      container.className = 'schedule';
+
+      if (state.viewMode === 'week') { renderWeeklyView(container, allHoras); return; }
+      if (state.viewMode === 'month') { renderMonthlyView(container); return; }
+
+      allHoras.forEach(hora => {
+        if (hora === '12:00') {
+          const slot = document.createElement('div'); slot.className = 'slot lunch';
+          slot.style.animationDelay = '0s';
+          slot.innerHTML = `<span class="slot-time" style="color:var(--text-secondary);">12:00</span><svg class="slot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg><div class="slot-content"><div class="slot-content-text">Intervalo — 12:00 às 13:00</div></div>`;
+          container.appendChild(slot); return;
+        }
+
+        const ag = filtered.find(a => a.horario === hora);
+        if (searchQ && ag) { const al = getAluno(ag.alunoId); if (al && !al.nome.toLowerCase().includes(searchQ)) return; }
+        if (!ag && searchQ) return;
+
+        const aluno = ag ? getAluno(ag.alunoId) : null;
+        const slot = document.createElement('div');
+        const isNow = isHorarioInPast(state.selectedDate, hora) && !ag && !isHorarioInPast(state.selectedDate, String(Number(hora.split(':')[0])+1).padStart(2,'0')+':00');
+        slot.className = 'slot' + (aluno ? '' : ' available') + (isNow ? ' now' : '');
+        slot.style.animationDelay = `${allHoras.indexOf(hora) * 30}ms`;
+
+        if (aluno) {
+          const wa = getWhatsAppStatus(ag); const catKey = ag.categoria || aluno.categorias[0];
+          const waIcon = wa.sent ? 'check-circle' : 'clock';
+          const icons = getCatIcon(12); const aulasFeitas = aluno.aulasFeitas[catKey]||0; const totalAulas = aluno.totalAulas[catKey]||20;
+          slot.innerHTML = `
+            <span class="slot-time">${hora}</span>
+            <div class="slot-content">
+              <div class="slot-content-row">
+                <span class="slot-content-name">${aluno.nome}</span>
+                <span class="slot-badge ${catKey}">${icons[catKey]} ${CATEGORIES[catKey]}</span>
+              </div>
+              <div class="slot-content-sub">${aulasFeitas} de ${totalAulas} aulas</div>
+            </div>
+            <div class="slot-right">
+              <div class="wa-status ${wa.sent ? 'sent' : ''}"><i data-feather="${waIcon}" style="width:12px;height:12px;"></i><span>${wa.label}</span></div>
+              <div class="slot-actions">
+                <button class="wa-btn" title="WhatsApp" onclick="event.stopPropagation();window.open('${getWhatsAppLink(aluno, hora, catKey)}', '_blank')"><i data-feather="message-circle"></i></button>
+                <button title="Cancelar" onclick="event.stopPropagation();cancelAppointment(${ag.id})"><i data-feather="x-circle"></i></button>
+              </div>
+            </div>`;
+          slot.className += ` occupied ${catKey}`;
+          slot.style.cursor = 'pointer';
+          slot.addEventListener('click', () => cancelAppointment(ag.id));
+        } else {
+          slot.innerHTML = `<span class="slot-time" style="color:var(--text-secondary);">${hora}</span><div class="slot-content"><div class="slot-content-text">Disponível</div></div>`;
+          slot.addEventListener('click', () => { if (state.currentPage==='agenda') openNewAppointmentModal(hora); });
+        }
+        container.appendChild(slot);
+      });
+      try { feather.replace(); } catch(e) {}
+    }
+
+    function renderWeeklyView(container, horas) {
+      const weekStart = getWeekStart(parseDate(state.selectedDate));
+      const dates = getWeekDates(weekStart);
+      const icons = getCatIcon(10);
+
+      let html = '<div class="weekly-header"><div style="grid-column:1;"></div>';
+      dates.forEach(d => { const s = formatDateStr(d); const isToday = s === formatDateStr(new Date()); html += `<div style="${isToday?'color:var(--primary);font-weight:700;':''}">${WEEKDAYS[d.getDay()]}<br><span style="font-size:13px;">${String(d.getDate()).padStart(2,'0')}</span></div>`; });
+      html += '</div>';
+
+      const allAg = data.agendamentos.filter(a => {
+        const ad = parseDate(a.data); return ad >= weekStart && ad < new Date(weekStart.getTime() + 7*24*60*60*1000);
+      });
+
+      horas.forEach(h => {
+        if (h === '12:00') { html += `<div class="weekly-time">12:00</div>`; for (let i=0;i<7;i++) html += `<div class="weekly-cell lunch" style="background:var(--hover);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-secondary);">☕</div>`; return; }
+        if (h === '13:00') return;
+        html += `<div class="weekly-time">${h}</div>`;
+        dates.forEach(d => {
+          const dateStr = formatDateStr(d);
+          const ag = allAg.find(a => a.data === dateStr && a.horario === h);
+          const aluno = ag ? getAluno(ag.alunoId) : null;
+
+          if (aluno) {
+            const catKey = ag.categoria || aluno.categorias[0];
+            const aulasFeitas = aluno.aulasFeitas[catKey]||0;
+            const totalAulas = aluno.totalAulas[catKey]||20;
+            html += `<div class="weekly-cell occupied" style="border-left:3px solid ${catKey==='carro'?'var(--car)':'var(--moto)'};background:${catKey==='carro'?'var(--car-bg)':'var(--moto-bg)'};" onclick="cancelAppointment(${ag.id})">
+              <div class="wc-name" style="display:flex;align-items:center;gap:3px;">${icons[catKey]} ${aluno.nome}</div>
+              <div class="wc-sub">${aulasFeitas}/${totalAulas}</div>
+            </div>`;
+          } else {
+            html += `<div class="weekly-cell available" onclick="selectDateAndOpen('${dateStr}','${h}')"></div>`;
+          }
+        });
+      });
+
+      container.innerHTML = html; container.className = 'schedule weekly';
+      try { feather.replace(); } catch(e) {}
+    }
+
+    function selectDateAndOpen(dateStr, hora) {
+      state.selectedDate = dateStr;
+      renderDaySelector();
+      document.getElementById('pageSubtitle').textContent = formatFullDate(parseDate(dateStr));
+      document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === 'day'));
+      state.viewMode = 'day';
+      openNewAppointmentModal(hora);
+    }
+
+    // ===== MONTHLY VIEW =====
+    function renderMonthlyView(container) {
+      const now = new Date();
+      const base = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+      const year = base.getFullYear();
+      const month = base.getMonth();
+      const monthName = MONTHS[month];
+      document.getElementById('monthLabel').textContent = `${monthName} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrev = new Date(year, month, 0).getDate();
+
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 1);
+      const monthAg = data.agendamentos.filter(a => {
+        const ad = parseDate(a.data);
+        return ad >= monthStart && ad < monthEnd;
+      });
+
+      const byDay = {};
+      monthAg.forEach(a => {
+        const day = parseDate(a.data).getDate();
+        if (!byDay[day]) byDay[day] = [];
+        byDay[day].push(a);
+      });
+
+      const todayStrLocal = formatDateStr(new Date());
+
+      let html = '<div class="month-calendar">';
+      html += '<div class="mc-header">';
+      ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(d => html += `<div>${d}</div>`);
+      html += '</div><div class="mc-grid">';
+
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const d = daysInPrev - i;
+        html += `<div class="mc-day other-month"><div class="mc-num">${d}</div></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = dateStr === todayStrLocal;
+        const aulas = byDay[d] || [];
+        const count = aulas.length;
+
+        html += `<div class="mc-day ${isToday ? 'today' : ''}" onclick="selectMonthDay('${dateStr}')">
+          <div class="mc-num">${d}${count > 0 ? ` <span class="mc-badge">${count}</span>` : ''}</div>
+        </div>`;
+      }
+
+      const totalCells = firstDay + daysInMonth;
+      const remaining = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= remaining; i++) {
+        html += `<div class="mc-day other-month"><div class="mc-num">${i}</div></div>`;
+      }
+
+      html += '</div></div>';
+      container.innerHTML = html;
+      container.className = 'schedule monthly';
+    }
+
+    function selectMonthDay(dateStr) {
+      state.selectedDate = dateStr;
+      document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === 'day'));
+      state.viewMode = 'day';
+      document.getElementById('daySelector').style.display = 'flex';
+      document.getElementById('monthSelector').style.display = 'none';
+      renderDaySelector();
+      renderSchedule();
+      updateStats();
+      document.getElementById('pageSubtitle').textContent = formatFullDate(parseDate(dateStr));
+    }
+
+    // Month navigation
+    document.getElementById('prevMonth').addEventListener('click', () => { monthOffset--; renderSchedule(); });
+    document.getElementById('nextMonth').addEventListener('click', () => { monthOffset++; renderSchedule(); });
+
+    // ===== CANCEL APPOINTMENT =====
+    function cancelAppointment(id) {
+      const ag = data.agendamentos.find(a => a.id === id);
+      if (!ag) return;
+      const aluno = getAluno(ag.alunoId);
+      const nome = aluno ? aluno.nome : 'desconhecido';
+      const catLabel = CATEGORIES[ag.categoria] || '';
+
+      openModal('Cancelar Aula');
+      modalTitle.textContent = 'Cancelar Aula';
+      modalBody.innerHTML = `
+        <p style="font-size:14px;margin-bottom:4px;font-weight:500;">Confirmar cancelamento?</p>
+        <p class="delete-modal-text">Aula de ${catLabel} com <strong>${nome}</strong> às ${ag.horario} será removida.</p>
+        <div class="modal-footer">
+          <button class="btn btn-outline" id="modalCancelBtn">Voltar</button>
+          <button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger);" id="modalConfirmCancel">Cancelar Aula</button>
+        </div>
+      `;
+      try { feather.replace(); } catch(e) {}
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+      document.getElementById('modalConfirmCancel').addEventListener('click', async () => {
+        const agIdx = data.agendamentos.findIndex(a => a.id === id);
+        if (agIdx > -1) {
+          const removed = data.agendamentos[agIdx];
+          if (aluno) {
+            const catKey = removed.categoria || aluno.categorias[0];
+            aluno.aulasFeitas[catKey] = Math.max(0, (aluno.aulasFeitas[catKey]||0) - 1);
+          }
+          await dbDeleteAgendamento(id);
+        }
+        closeModal();
+        showToast('Aula cancelada.', 'info');
+        renderSchedule(); updateStats();
+      });
+    }
+
+    // ===== FILTERS =====
+    document.querySelectorAll('#filterChips .chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        state.filterCategoria = chip.dataset.filter;
+        renderSchedule();
+      });
+    });
+    document.getElementById('agendaSearch').addEventListener('input', e => {
+      state.filterSearch = e.target.value;
+      renderSchedule();
+    });
+
+    // ===== VIEW TOGGLE =====
+    document.querySelectorAll('#viewToggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#viewToggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.viewMode = btn.dataset.view;
+        const isMonth = btn.dataset.view === 'month';
+        document.getElementById('daySelector').style.display = isMonth ? 'none' : 'flex';
+        document.getElementById('monthSelector').style.display = isMonth ? 'flex' : 'none';
+        renderSchedule();
+      });
+    });
+
+    // ===== MODAL =====
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalClose = document.getElementById('modalClose');
+    function openModal(title) { modalTitle.textContent = title; overlay.classList.add('open'); }
+    function closeModal() { overlay.classList.remove('open'); }
+    modalClose.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    // ===== NEW APPOINTMENT MODAL =====
+    let modalStudentSearch = '', modalSelectedAlunoId = null, modalCategoria = null, modalHour = null;
+
+    function openNewAppointmentModal(hour) {
+      // Past time validation
+      if (isHorarioInPast(state.selectedDate, hour)) {
+        showToast('Este horário já passou. Selecione um horário futuro.', 'error');
+        return;
+      }
+      modalHour = hour; modalStudentSearch = ''; modalSelectedAlunoId = null; modalCategoria = null;
+      openModal('Nova Aula');
+      renderAppointmentModal();
+    }
+
+    function renderAppointmentModal() {
+      const search = modalStudentSearch.toLowerCase();
+      const filtered = data.alunos.filter(a => a.status === 'ativo' && a.nome.toLowerCase().includes(search));
+      const selectedAluno = modalSelectedAlunoId ? getAluno(modalSelectedAlunoId) : null;
+
+      if (selectedAluno && selectedAluno.categorias.length === 1) modalCategoria = selectedAluno.categorias[0];
+      else if (!selectedAluno) modalCategoria = null;
+
+      modalTitle.textContent = (selectedAluno && modalCategoria) ? `Nova Aula de ${CATEGORIES[modalCategoria]}` : 'Nova Aula';
+
+      const icons = getCatIcon(14);
+      let studentsHtml = filtered.length ? filtered.map(a => {
+        const selected = modalSelectedAlunoId === a.id;
+        const catsBadges = a.categorias.map(c => `<span class="badge badge-${c}" style="display:inline-flex;align-items:center;gap:3px;">${icons[c]} ${CATEGORIES[c]}</span>`).join(' ');
+        return `<div class="student-radio-item ${selected?'selected':''}" data-id="${a.id}"><div class="radio-circle"></div><div class="student-radio-info"><div class="mini-avatar" style="background:${getAvatarColor(a.nome)}">${getInitials(a.nome)}</div><div class="sr-info"><span class="sr-name">${a.nome}</span><div style="margin-top:3px;display:flex;gap:4px;">${catsBadges}</div></div></div></div>`;
+      }).join('') : '<div class="no-data" style="padding:20px;">Nenhum aluno encontrado</div>';
+
+      let categoriaHtml = '';
+      if (selectedAluno && selectedAluno.categorias.length > 1) {
+        const catRadios = selectedAluno.categorias.map(c => {
+          const sel = modalCategoria === c;
+          return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;border:1px solid ${sel?'var(--primary)':'var(--border)'};border-radius:var(--radius-sm);background:${sel?'var(--primary-light)':'transparent'};transition:all var(--transition);">
+            <input type="radio" name="modalCat" value="${c}" ${sel?'checked':''} style="accent-color:var(--primary);width:16px;height:16px;">
+            <span style="display:inline-flex;align-items:center;gap:4px;color:var(--${c});font-weight:500;">${getCatIcon(16)[c]} ${CATEGORIES[c]}</span>
+          </label>`;
+        }).join('');
+        categoriaHtml = `<div class="form-group"><label class="form-label">Tipo de Aula</label><div style="display:flex;gap:8px;">${catRadios}</div></div>`;
+      } else if (selectedAluno && selectedAluno.categorias.length === 1) {
+        categoriaHtml = `<div class="form-group"><label class="form-label">Tipo de Aula</label><div class="input-wrapper no-icon"><input type="text" class="form-input" value="${CATEGORIES[selectedAluno.categorias[0]]}" readonly style="background:var(--bg);color:var(--${selectedAluno.categorias[0]});font-weight:600;"></div></div>`;
+      }
+
+      // Past time warning
+      let pastWarning = '';
+      if (modalHour && isHorarioInPast(state.selectedDate, modalHour)) {
+        pastWarning = `<div style="padding:8px 12px;border-radius:var(--radius-sm);background:var(--danger-bg);color:var(--danger);font-size:12px;margin-bottom:12px;display:flex;align-items:center;gap:6px;"><i data-feather="alert-triangle" style="width:14px;height:14px;flex-shrink:0;"></i> Horário já passou. Selecione outro.</div>`;
+      }
+
+      const canConfirm = modalSelectedAlunoId && modalCategoria && modalHour && !isHorarioInPast(state.selectedDate, modalHour);
+
+      modalBody.innerHTML = `
+        ${pastWarning}
+        <div class="form-group"><label class="form-label">Aluno</label>
+          <div class="input-wrapper" style="margin-bottom:10px;"><i data-feather="search"></i><input type="text" id="modalStudentSearchInput" placeholder="Buscar aluno..." value="${escapeHtml(modalStudentSearch)}"></div>
+          <div class="student-list-radio" id="studentListRadio">${studentsHtml}</div>
+        </div>
+        ${categoriaHtml}
+        <div class="form-group"><label class="form-label">Horário</label><div class="input-wrapper no-icon"><input type="text" class="form-input" value="${modalHour}" readonly style="background:var(--bg);"></div></div>
+        <div class="modal-footer"><button class="btn btn-outline" id="modalCancelBtn">Cancelar</button><button class="btn btn-primary" id="modalConfirmBtn" ${!canConfirm?'disabled':''}>Agendar Aula</button></div>
+      `;
+      try { feather.replace(); } catch(e) {}
+
+      document.getElementById('modalStudentSearchInput').addEventListener('input', e => { modalStudentSearch = e.target.value; renderAppointmentModal(); });
+      document.querySelectorAll('.student-radio-item').forEach(el => { el.addEventListener('click', () => { modalSelectedAlunoId = parseInt(el.dataset.id); modalCategoria = null; renderAppointmentModal(); }); });
+      document.querySelectorAll('input[name="modalCat"]').forEach(rb => { rb.addEventListener('change', () => { if(rb.checked){modalCategoria=rb.value;renderAppointmentModal();} }); });
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      if (confirmBtn) confirmBtn.addEventListener('click', () => { if (modalSelectedAlunoId && modalCategoria && modalHour) confirmAppointment(modalSelectedAlunoId, modalCategoria, modalHour); });
+    }
+
+    function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+    async function confirmAppointment(alunoId, categoria, horario) {
+      try {
+        if (isHorarioInPast(state.selectedDate, horario)) { showToast('Horário já passou.', 'error'); closeModal(); return; }
+        const exists = data.agendamentos.some(a => a.data === state.selectedDate && a.horario === horario);
+        if (exists) { showToast('Este horário já está agendado.', 'error'); return; }
+
+        const novo = { id: data.agendamentoIdCounter++, alunoId, categoria, data: state.selectedDate, horario, status: 'confirmado' };
+        await dbAddAgendamento(novo);
+
+        const aluno = getAluno(alunoId);
+        const catLabel = aluno ? CATEGORIES[categoria] : '';
+        if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; aluno.aulasFeitas[categoria] = Math.min(aluno.aulasFeitas[categoria] + 1, aluno.totalAulas[categoria]||20); await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
+
+        closeModal();
+        showToast(`Aula de ${catLabel} agendada com ${aluno?aluno.nome:''} às ${horario}`, 'success');
+        renderSchedule(); renderDaySelector(); updateStats();
+      } catch(e) {
+        showToast('Erro ao agendar aula: ' + e.message, 'error');
+      }
+    }
+
+    // ===== FAB =====
+    document.getElementById('fabBtn').addEventListener('click', () => {
+      if (state.currentPage !== 'agenda') navigate('agenda');
+      const agendamentos = getAgendamentosByDate(state.selectedDate);
+      const horas = ['07:00','08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
+      const firstAvailable = horas.find(h => !agendamentos.some(a => a.horario === h) && !isHorarioInPast(state.selectedDate, h));
+      openNewAppointmentModal(firstAvailable || '08:00');
+    });
+
+    // ===== ALUNOS =====
+    function renderAlunos(filter) {
+      filter = filter || ''; const q = filter.toLowerCase();
+      const filtered = data.alunos.filter(a => a.nome.toLowerCase().includes(q));
+      const tbody = document.getElementById('alunosTableBody');
+      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhum aluno encontrado</td></tr>'; return; }
+
+      tbody.innerHTML = filtered.map(a => {
+        const statusBadge = { ativo: '<span class="badge badge-ativo">Ativo</span>', concluido: '<span class="badge badge-concluido">Concluído</span>', pendente: '<span class="badge badge-pendente">Pendente</span>' }[a.status] || '';
+        const catIcons = getCatIcon(12);
+        const catsHtml = a.categorias.map(c => `<span class="badge badge-${c}" style="display:inline-flex;align-items:center;gap:3px;">${catIcons[c]} ${CATEGORIES[c]}</span>`).join(' ');
+        const progressHtml = a.categorias.map(c => {
+          const pct = a.totalAulas[c] > 0 ? Math.round((a.aulasFeitas[c]/a.totalAulas[c])*100) : 0;
+          const done = a.aulasFeitas[c] >= a.totalAulas[c];
+          return `<div style="display:flex;align-items:center;gap:6px;margin-top:${a.categorias.length>1?'4px':'0'};"><span style="font-size:11px;color:var(--text-secondary);min-width:36px;font-weight:500;">${CATEGORIES[c]}</span><div class="progress-bar" style="width:100px;"><div class="fill" style="width:${pct}%;background:${done?'var(--success)':'var(--primary)'};"></div></div><span class="progress-text">${a.aulasFeitas[c]}/${a.totalAulas[c]}</span></div>`;
+        }).join('');
+
+        return `<tr><td><div class="aluno-cell"><div class="mini-avatar" style="background:${getAvatarColor(a.nome)}">${getInitials(a.nome)}</div><span style="font-weight:500;">${a.nome}</span></div></td>
+          <td style="color:var(--text-secondary);">(${a.whatsapp.slice(0,2)}) ${a.whatsapp.slice(2,7)}-${a.whatsapp.slice(7)}</td>
+          <td>${catsHtml}</td>
+          <td><div style="display:flex;flex-direction:column;gap:2px;">${progressHtml}</div></td>
+          <td>${statusBadge}</td>
+          <td style="position:relative;"><button class="action-btn" data-id="${a.id}" aria-label="Ações"><i data-feather="more-vertical"></i></button>
+            <div class="action-menu" data-id="${a.id}"><div class="action-menu-item" data-action="edit" data-id="${a.id}"><i data-feather="edit-2"></i> Editar</div><div class="action-menu-item" data-action="history" data-id="${a.id}"><i data-feather="clock"></i> Histórico</div><div class="action-menu-item danger" data-action="delete" data-id="${a.id}"><i data-feather="trash-2"></i> Excluir</div></div>
+          </td></tr>`;
+      }).join('');
+      try { feather.replace(); } catch(e) {}
+    }
+
+    document.getElementById('alunoSearch').addEventListener('input', e => renderAlunos(e.target.value));
+    document.getElementById('newAlunoBtn').addEventListener('click', openNewStudentModal);
+
+    // Alunos table delegation
+    document.getElementById('alunosTableBody').addEventListener('click', e => {
+      const target = e.target.closest('.action-btn');
+      if (target) { e.stopPropagation(); const menu = target.nextElementSibling; if(menu&&menu.classList.contains('action-menu')){const open=menu.classList.contains('open'); document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(!open) menu.classList.add('open');} return; }
+      const menuItem = e.target.closest('.action-menu-item');
+      if (menuItem) { const id=parseInt(menuItem.dataset.id); const action=menuItem.dataset.action; document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(action==='edit') openEditAlunoModal(id); else if(action==='delete') deleteAluno(id); else if(action==='history') showHistory(id); }
+    });
+    document.addEventListener('click', () => document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')));
+
+    // ===== NEW STUDENT MODAL =====
+    function openNewStudentModal() {
+      state.editingAluno = null; openModal('Novo Aluno');
+      modalBody.innerHTML = `
+        <div class="form-group"><label class="form-label">Nome completo</label><input type="text" class="form-input" id="formNome" placeholder="Ex: João Silva"><div class="form-error" id="errorNome">Nome é obrigatório</div></div>
+        <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" class="form-input" id="formWhatsapp" placeholder="(11) 99999-0001" maxlength="15"><div class="form-error" id="errorWhatsapp">WhatsApp inválido</div></div>
+        <div class="form-group"><label class="form-label">Categorias</label>
+          <div style="display:flex;gap:12px;padding:4px 0;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;"><input type="checkbox" id="formCatCarro" value="carro" checked style="width:16px;height:16px;accent-color:var(--primary);"><span style="display:inline-flex;align-items:center;gap:4px;color:var(--car);font-weight:500;">${getCatIcon(16).carro} Carro</span></label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;"><input type="checkbox" id="formCatMoto" value="moto" style="width:16px;height:16px;accent-color:var(--primary);"><span style="display:inline-flex;align-items:center;gap:4px;color:var(--moto);font-weight:500;">${getCatIcon(16).moto} Moto</span></label>
+          </div><div id="formCatError" class="form-error">Selecione pelo menos uma categoria</div>
+        </div>
+        <div class="form-group" id="aulasGroupCarro"><label class="form-label">Total de aulas (Carro)</label><input type="number" class="form-input" id="formTotalAulasCarro" value="20" min="1" max="999" style="width:100px;"></div>
+        <div class="form-group" id="aulasGroupMoto" style="display:none;"><label class="form-label">Total de aulas (Moto)</label><input type="number" class="form-input" id="formTotalAulasMoto" value="20" min="1" max="999" style="width:100px;"></div>
+        <div class="modal-footer"><button class="btn btn-outline" id="modalCancelBtn">Cancelar</button><button class="btn btn-primary" id="modalSaveBtn">Salvar</button></div>
+      `;
+      try { feather.replace(); } catch(e) {}
+      if (document.getElementById('formCatCarro')) document.getElementById('formCatCarro').addEventListener('change', function(){document.getElementById('aulasGroupCarro').style.display=this.checked?'block':'none';});
+      if (document.getElementById('formCatMoto')) document.getElementById('formCatMoto').addEventListener('change', function(){document.getElementById('aulasGroupMoto').style.display=this.checked?'block':'none';});
+      const w = document.getElementById('formWhatsapp');
+      if (w) w.addEventListener('input', e => { let v = e.target.value.replace(/\D/g,'').slice(0,11); if(v.length<=2) e.target.value=v; else if(v.length<=7) e.target.value=`(${v.slice(0,2)}) ${v.slice(2)}`; else e.target.value=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`; });
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+      document.getElementById('modalSaveBtn').addEventListener('click', saveStudent);
+    }
+
+    function openEditAlunoModal(id) {
+      const aluno = getAluno(id); if(!aluno) return;
+      state.editingAluno = id; openModal('Editar Aluno');
+      const whatsRaw = aluno.whatsapp;
+      let whatsFormatted = whatsRaw;
+      if(whatsRaw.length<=2) whatsFormatted=whatsRaw; else if(whatsRaw.length<=7) whatsFormatted=`(${whatsRaw.slice(0,2)}) ${whatsRaw.slice(2)}`; else whatsFormatted=`(${whatsRaw.slice(0,2)}) ${whatsRaw.slice(2,7)}-${whatsRaw.slice(7)}`;
+
+      const cats = ['carro','moto'];
+      const checkboxesHtml = cats.map(c => `
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+          <input type="checkbox" id="formCat${c.charAt(0).toUpperCase()+c.slice(1)}" value="${c}" ${aluno.categorias.includes(c)?'checked':''} style="width:16px;height:16px;accent-color:var(--primary);">
+          <span style="display:inline-flex;align-items:center;gap:4px;color:var(--${c});font-weight:500;">${getCatIcon(16)[c]} ${CATEGORIES[c]}</span>
+        </label>
+      `).join('');
+      const aulasFields = cats.map(c => {
+        const feitas = aluno.aulasFeitas[c]||0; const total = aluno.totalAulas[c]||20;
+        const show = aluno.categorias.includes(c) ? 'block' : 'none';
+        return `<div class="form-group" id="aulasGroup${c.charAt(0).toUpperCase()+c.slice(1)}" style="display:${show};"><label class="form-label">Aulas feitas (${CATEGORIES[c]})</label><div style="display:flex;gap:8px;align-items:center;"><input type="number" class="form-input" id="formAulasFeitas${c.charAt(0).toUpperCase()+c.slice(1)}" value="${feitas}" min="0" max="${total}" style="width:80px;"><span style="color:var(--text-secondary);">de</span><input type="number" class="form-input" id="formTotalAulas${c.charAt(0).toUpperCase()+c.slice(1)}" value="${total}" min="1" max="999" style="width:80px;"></div></div>`;
+      }).join('');
+
+      modalBody.innerHTML = `
+        <div class="form-group"><label class="form-label">Nome completo</label><input type="text" class="form-input" id="formNome" value="${escapeHtml(aluno.nome)}"><div class="form-error" id="errorNome">Nome é obrigatório</div></div>
+        <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" class="form-input" id="formWhatsapp" value="${escapeHtml(whatsFormatted)}" maxlength="15"><div class="form-error" id="errorWhatsapp">WhatsApp inválido</div></div>
+        <div class="form-group"><label class="form-label">Categorias</label><div style="display:flex;gap:12px;padding:4px 0;">${checkboxesHtml}</div><div id="formCatError" class="form-error">Selecione pelo menos uma categoria</div></div>
+        ${aulasFields}
+        <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="formStatus"><option value="ativo" ${aluno.status==='ativo'?'selected':''}>Ativo</option><option value="concluido" ${aluno.status==='concluido'?'selected':''}>Concluído</option><option value="pendente" ${aluno.status==='pendente'?'selected':''}>Pendente</option></select></div>
+        <div class="modal-footer"><button class="btn btn-outline" id="modalCancelBtn">Cancelar</button><button class="btn btn-primary" id="modalSaveBtn">Salvar</button></div>
+      `;
+      try { feather.replace(); } catch(e) {}
+      cats.forEach(c => { const cb=document.getElementById(`formCat${c.charAt(0).toUpperCase()+c.slice(1)}`); if(cb) cb.addEventListener('change', function(){const g=document.getElementById(`aulasGroup${c.charAt(0).toUpperCase()+c.slice(1)}`); if(g) g.style.display=this.checked?'block':'none';}); });
+      const w = document.getElementById('formWhatsapp');
+      if (w) w.addEventListener('input', e => { let v = e.target.value.replace(/\D/g,'').slice(0,11); if(v.length<=2) e.target.value=v; else if(v.length<=7) e.target.value=`(${v.slice(0,2)}) ${v.slice(2)}`; else e.target.value=`(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`; });
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+      document.getElementById('modalSaveBtn').addEventListener('click', saveStudent);
+    }
+
+    async function saveStudent() {
+      const nome = document.getElementById('formNome').value.trim();
+      const whatsRaw = document.getElementById('formWhatsapp').value.replace(/\D/g,'').slice(0,11);
+      const categorias = [];
+      if (document.getElementById('formCatCarro')?.checked) categorias.push('carro');
+      if (document.getElementById('formCatMoto')?.checked) categorias.push('moto');
+
+      let valid = true;
+      if(!nome){document.getElementById('errorNome').style.display='block';valid=false;}else{document.getElementById('errorNome').style.display='none';}
+      if(whatsRaw.length<10){document.getElementById('errorWhatsapp').style.display='block';valid=false;}else{document.getElementById('errorWhatsapp').style.display='none';}
+      if(categorias.length===0){document.getElementById('formCatError').style.display='block';valid=false;}else{document.getElementById('formCatError').style.display='none';}
+      if(!valid) return;
+
+      function buildAulasFeitas(){const obj={carro:0,moto:0};categorias.forEach(c=>{const el=document.getElementById(`formAulasFeitas${c.charAt(0).toUpperCase()+c.slice(1)}`); obj[c]=el?parseInt(el.value)||0:0;});return obj;}
+      function buildTotalAulas(){const obj={carro:20,moto:20};categorias.forEach(c=>{const el=document.getElementById(`formTotalAulas${c.charAt(0).toUpperCase()+c.slice(1)}`); if(el) obj[c]=parseInt(el.value)||20;});return obj;}
+
+      if(state.editingAluno){
+        const aluno = getAluno(state.editingAluno);
+        if(aluno){aluno.nome=nome;aluno.whatsapp=whatsRaw;aluno.categorias=categorias;aluno.aulasFeitas=buildAulasFeitas();aluno.totalAulas=buildTotalAulas();aluno.status=document.getElementById('formStatus')?.value||aluno.status;await dbUpdateAluno(aluno.id, {nome, whatsapp: whatsRaw, categorias, aulasFeitas: aluno.aulasFeitas, totalAulas: aluno.totalAulas, status: aluno.status});closeModal();showToast('Aluno atualizado com sucesso!','success');renderAlunos(document.getElementById('alunoSearch').value);}
+      } else {
+        const novo = {id:data.alunoIdCounter++,nome,whatsapp:whatsRaw,categorias,aulasFeitas:buildAulasFeitas(),totalAulas:buildTotalAulas(),status:'ativo'};
+        await dbAddAluno(novo);
+        closeModal();showToast('Aluno cadastrado com sucesso!','success');
+        renderAlunos(document.getElementById('alunoSearch').value);
+      }
+    }
+
+    function deleteAluno(id) {
+      const aluno = getAluno(id); if(!aluno) return;
+      openModal('Excluir Aluno');
+      modalBody.innerHTML = `<p style="font-size:14px;margin-bottom:4px;font-weight:500;">Tem certeza que deseja excluir <strong>${escapeHtml(aluno.nome)}</strong>?</p><p class="delete-modal-text">Todas as aulas agendadas para este aluno também serão removidas.</p><div class="modal-footer"><button class="btn btn-outline" id="modalCancelBtn">Cancelar</button><button class="btn btn-primary" style="background:var(--danger);border-color:var(--danger);" id="modalConfirmDelete">Excluir</button></div>`;
+      try { feather.replace(); } catch(e) {}
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+      document.getElementById('modalConfirmDelete').addEventListener('click', async () => {
+        const aulasAluno = data.agendamentos.filter(a => a.alunoId === id);
+        for (const a of aulasAluno) await dbDeleteAgendamento(a.id);
+        await dbDeleteAluno(id);
+        closeModal(); showToast('Aluno excluído.', 'info'); renderAlunos(document.getElementById('alunoSearch').value);
+      });
+    }
+
+    function showHistory(id) {
+      const aluno = getAluno(id); if(!aluno) return;
+      const aulas = data.agendamentos.filter(a => a.alunoId === id);
+      openModal('Histórico');
+      modalBody.innerHTML = `<p style="font-weight:600;font-size:15px;margin-bottom:12px;">${escapeHtml(aluno.nome)}</p>${aulas.length?aulas.map(a=>{const d=parseDate(a.data);const dateStr=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; const histCat=a.categoria||'carro'; return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${dateStr}</span><span style="font-weight:600;font-family:monospace;">${a.horario}</span><span class="badge badge-${histCat}" style="display:inline-flex;align-items:center;gap:3px;">${getCatIcon(12)[histCat]} ${CATEGORIES[histCat]}</span><span style="color:var(--text-secondary);">${a.status}</span></div>`;}).join(''):'<p style="color:var(--text-secondary);font-size:14px;">Nenhuma aula registrada.</p>'}<div class="modal-footer"><button class="btn btn-outline" id="modalCancelBtn">Fechar</button></div>`;
+      try { feather.replace(); } catch(e) {}
+      document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+    }
+
+    // ===== MENU TOGGLE =====
+    document.getElementById('menuToggle').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => { item.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open')); });
+
+    // ===== NAVIGATION =====
+    document.querySelectorAll('.sidebar-nav-item, .bottom-nav-item').forEach(item => { item.addEventListener('click', () => { if(item.dataset.page) navigate(item.dataset.page); }); });
+
+    // ===== EXPORT =====
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `autoagenda-backup-${todayStr}.json`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      showToast('Dados exportados com sucesso!', 'success');
+    });
+    document.getElementById('exportPrintBtn').addEventListener('click', () => { if (state.currentPage !== 'agenda') navigate('agenda'); window.print(); });
+
+    // ===== SERVICE WORKER =====
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+
+    // ===== LOGIN EVENTS =====
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+    document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+    // ===== SETTINGS =====
+    document.getElementById('configSaveBtn').addEventListener('click', () => {
+      const auth = getAuth();
+      const nome = document.getElementById('configNome').value.trim();
+      const senhaAtual = document.getElementById('configSenhaAtual').value;
+      const senhaNova = document.getElementById('configSenhaNova').value;
+
+      if (senhaAtual && senhaNova) {
+        if (senhaAtual !== auth.pass) {
+          document.getElementById('configSenhaError').style.display = 'block';
+          return;
+        }
+        document.getElementById('configSenhaError').style.display = 'none';
+        auth.pass = senhaNova;
+        document.getElementById('configSenhaAtual').value = '';
+        document.getElementById('configSenhaNova').value = '';
+      }
+      if (nome) {
+        auth.nome = nome;
+        document.getElementById('sidebarUserName').textContent = nome;
+        const initials = nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        document.querySelector('#sidebarUser .avatar').textContent = initials;
+      }
+
+      // Firebase config
+      const fbConfig = {
+        apiKey: document.getElementById('configFirebaseApiKey').value.trim(),
+        projectId: document.getElementById('configFirebaseProjectId').value.trim(),
+        appId: document.getElementById('configFirebaseAppId').value.trim(),
+        authDomain: document.getElementById('configFirebaseAuthDomain').value.trim() || undefined,
+        storageBucket: document.getElementById('configFirebaseStorageBucket').value.trim() || undefined,
+        messagingSenderId: document.getElementById('configFirebaseMessagingSenderId').value.trim() || undefined
+      };
+      if (fbConfig.apiKey && fbConfig.projectId && fbConfig.appId) {
+        saveFirebaseConfig(fbConfig);
+        firebaseApp = null; firebaseDb = null;
+        if (initFirebase()) {
+          initFirebaseAuth();
+          dbSyncFromFirebase(); showToast('Firebase conectado!', 'success'); renderSchedule(); renderAlunos(); updateStats();
+        }
+      } else {
+        localStorage.removeItem(FIREBASE_KEY);
+        firebaseApp = null; firebaseDb = null;
+      }
+
+      saveAuth(auth);
+      showToast('Configurações salvas!', 'success');
+    });
+
+    function loadConfig() {
+      const auth = getAuth();
+      document.getElementById('configNome').value = auth.nome || '';
+      const fb = getFirebaseConfig();
+      if (fb) {
+        document.getElementById('configFirebaseApiKey').value = fb.apiKey || '';
+        document.getElementById('configFirebaseProjectId').value = fb.projectId || '';
+        document.getElementById('configFirebaseAppId').value = fb.appId || '';
+        document.getElementById('configFirebaseAuthDomain').value = fb.authDomain || '';
+        document.getElementById('configFirebaseStorageBucket').value = fb.storageBucket || '';
+        document.getElementById('configFirebaseMessagingSenderId').value = fb.messagingSenderId || '';
+      }
+    }
+
+    // ===== INIT =====
+    function initApp() {
+      navigate('agenda');
+      loadConfig();
+    }
+
+    // Check auth on load and init Firebase
+    (function() {
+      const auth = getAuth();
+      if (auth.nome) {
+        document.getElementById('sidebarUserName').textContent = auth.nome;
+        const initials = auth.nome.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        document.querySelector('#sidebarUser .avatar').textContent = initials;
+      }
+      if (auth.authenticated) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        initApp();
+      }
+      // Init Firebase if configured
+      if (getFirebaseConfig()) {
+        if (initFirebase()) {
+          initFirebaseAuth();
+          dbSyncFromFirebase();
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
