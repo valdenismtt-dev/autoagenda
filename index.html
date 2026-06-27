@@ -472,6 +472,8 @@
     .alunos-table .progress-bar { width: 100px; height: 6px; background: var(--bg); border-radius: 100px; overflow: hidden; display: inline-block; }
     .alunos-table .progress-bar .fill { height: 100%; border-radius: 100px; background: var(--primary); transition: width 0.3s; }
     .alunos-table .progress-text { font-size: 13px; color: var(--text-secondary); margin-left: 8px; }
+    .aluno-name-cell { cursor: pointer; position: relative; }
+    .aluno-name-cell .action-menu { position: absolute; left: 0; right: auto; top: 100%; z-index: 30; }
     .alunos-table .action-btn svg { width: 16px; height: 16px; }
 
     .action-menu {
@@ -776,7 +778,7 @@
           </div>
           <div class="alunos-table-wrap">
             <table class="alunos-table">
-              <thead><tr><th>Aluno</th><th>WhatsApp</th><th>Categorias</th><th>Aulas</th><th>Status</th><th style="width:40px;"></th></tr></thead>
+              <thead><tr><th>Aluno</th><th>WhatsApp</th><th>Categorias</th><th>Aulas</th><th>Status</th></tr></thead>
               <tbody id="alunosTableBody"></tbody>
             </table>
           </div>
@@ -1671,7 +1673,7 @@
       filter = filter || ''; const q = filter.toLowerCase();
       const filtered = data.alunos.filter(a => a.nome.toLowerCase().includes(q));
       const tbody = document.getElementById('alunosTableBody');
-      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="no-data">Nenhum aluno encontrado</td></tr>'; return; }
+      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="5" class="no-data">Nenhum aluno encontrado</td></tr>'; return; }
 
       tbody.innerHTML = filtered.map(a => {
         const statusBadge = { ativo: '<span class="badge badge-ativo">Ativo</span>', concluido: '<span class="badge badge-concluido">Concluído</span>', pendente: '<span class="badge badge-pendente">Pendente</span>' }[a.status] || '';
@@ -1683,14 +1685,13 @@
           return `<div style="display:flex;align-items:center;gap:6px;margin-top:${a.categorias.length>1?'4px':'0'};"><span style="font-size:11px;color:var(--text-secondary);min-width:36px;font-weight:500;">${CATEGORIES[c]}</span><div class="progress-bar" style="width:100px;"><div class="fill" style="width:${pct}%;background:${done?'var(--success)':'var(--primary)'};"></div></div><span class="progress-text">${a.aulasFeitas[c]}/${a.totalAulas[c]}</span></div>`;
         }).join('');
 
-        return `<tr><td><div class="aluno-cell"><div class="mini-avatar" style="background:${getAvatarColor(a.nome)}">${getInitials(a.nome)}</div><span style="font-weight:500;">${a.nome}</span></div></td>
+        return `<tr><td class="aluno-name-cell" data-id="${a.id}"><div class="aluno-cell"><div class="mini-avatar" style="background:${getAvatarColor(a.nome)}">${getInitials(a.nome)}</div><span style="font-weight:500;">${a.nome}</span></div>
+          <div class="action-menu" data-id="${a.id}"><div class="action-menu-item" data-action="edit" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</div><div class="action-menu-item" data-action="history" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Histórico</div><div class="action-menu-item danger" data-action="delete" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Excluir</div></div>
+        </td>
           <td style="color:var(--text-secondary);">(${a.whatsapp.slice(0,2)}) ${a.whatsapp.slice(2,7)}-${a.whatsapp.slice(7)}</td>
           <td>${catsHtml}</td>
           <td><div style="display:flex;flex-direction:column;gap:2px;">${progressHtml}</div></td>
-          <td>${statusBadge}</td>
-          <td style="position:relative;"><button class="action-btn" data-id="${a.id}" aria-label="Ações"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="12" cy="5" r="2.5"/><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="19" r="2.5"/></svg></button>
-            <div class="action-menu" data-id="${a.id}"><div class="action-menu-item" data-action="edit" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</div><div class="action-menu-item" data-action="history" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Histórico</div><div class="action-menu-item danger" data-action="delete" data-id="${a.id}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Excluir</div></div>
-          </td></tr>`;
+          <td>${statusBadge}</td></tr>`;
       }).join('');
       try { feather.replace(); } catch(e) {}
     }
@@ -1700,8 +1701,8 @@
 
     // Alunos table delegation
     document.getElementById('alunosTableBody').addEventListener('click', e => {
-      const target = e.target.closest('.action-btn');
-      if (target) { e.stopPropagation(); const menu = target.nextElementSibling; if(menu&&menu.classList.contains('action-menu')){const open=menu.classList.contains('open'); document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(!open) menu.classList.add('open');} return; }
+      const nameCell = e.target.closest('.aluno-name-cell');
+      if (nameCell) { e.stopPropagation(); const menu = nameCell.querySelector('.action-menu'); if(menu){const open=menu.classList.contains('open'); document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(!open) menu.classList.add('open');} return; }
       const menuItem = e.target.closest('.action-menu-item');
       if (menuItem) { const id=parseInt(menuItem.dataset.id); const action=menuItem.dataset.action; document.querySelectorAll('.action-menu.open').forEach(m=>m.classList.remove('open')); if(action==='edit') openEditAlunoModal(id); else if(action==='delete') deleteAluno(id); else if(action==='history') showHistory(id); }
     });
