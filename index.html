@@ -1503,9 +1503,15 @@
         const agIdx = data.agendamentos.findIndex(a => a.id === id);
         if (agIdx > -1) {
           const removed = data.agendamentos[agIdx];
-          if (aluno) {
+          if (aluno && removed.concluida) {
             const catKey = removed.categoria || aluno.categorias[0];
             aluno.aulasFeitas[catKey] = Math.max(0, (aluno.aulasFeitas[catKey]||0) - 1);
+            if (aluno.categorias.every(c => (aluno.aulasFeitas[c]||0) >= (aluno.totalAulas[c]||20))) {
+              aluno.status = 'concluido';
+            } else {
+              aluno.status = 'ativo';
+            }
+            await dbUpdateAluno(aluno.id, { aulasFeitas: aluno.aulasFeitas, status: aluno.status });
           }
           await dbDeleteAgendamento(id);
         }
@@ -1519,6 +1525,22 @@
       const ag = data.agendamentos.find(a => a.id === id);
       if (!ag) return;
       ag.concluida = !ag.concluida;
+      const aluno = getAluno(ag.alunoId);
+      if (aluno) {
+        const catKey = ag.categoria || aluno.categorias[0];
+        if (ag.concluida) {
+          if (!aluno.aulasFeitas[catKey]) aluno.aulasFeitas[catKey] = 0;
+          aluno.aulasFeitas[catKey] = Math.min((aluno.aulasFeitas[catKey]||0) + 1, aluno.totalAulas[catKey]||20);
+        } else {
+          aluno.aulasFeitas[catKey] = Math.max(0, (aluno.aulasFeitas[catKey]||0) - 1);
+        }
+        if (aluno.categorias.every(c => (aluno.aulasFeitas[c]||0) >= (aluno.totalAulas[c]||20))) {
+          aluno.status = 'concluido';
+        } else {
+          aluno.status = 'ativo';
+        }
+        dbUpdateAluno(aluno.id, { aulasFeitas: aluno.aulasFeitas, status: aluno.status });
+      }
       dbFb(() => firebaseDb.collection('agendamentos').doc(String(id)).update({ concluida: ag.concluida }));
       saveData();
       showToast(ag.concluida ? 'Aula marcada como concluída!' : 'Aula reaberta.', ag.concluida ? 'success' : 'info');
@@ -1660,7 +1682,7 @@
 
         aluno = getAluno(alunoId);
         const catLabel = aluno ? CATEGORIES[categoria] : '';
-        if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; aluno.aulasFeitas[categoria] = Math.min(aluno.aulasFeitas[categoria] + 1, aluno.totalAulas[categoria]||20); await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
+        if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
 
         closeModal();
         showToast(`Aula de ${catLabel} agendada com ${aluno?aluno.nome:''} às ${horario}`, 'success');
