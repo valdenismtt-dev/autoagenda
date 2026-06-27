@@ -1579,7 +1579,7 @@
         const exists = data.agendamentos.some(a => a.data === state.selectedDate && a.horario === horario);
         if (exists) { showToast('Este horário já está agendado.', 'error'); return; }
 
-        const aluno = getAluno(alunoId);
+        let aluno = getAluno(alunoId);
         if (aluno) {
           const feitas = aluno.aulasFeitas[categoria]||0;
           const total = aluno.totalAulas[categoria]||20;
@@ -1593,7 +1593,7 @@
         const novo = { id: data.agendamentoIdCounter++, alunoId, categoria, data: state.selectedDate, horario, status: 'confirmado' };
         await dbAddAgendamento(novo);
 
-        const aluno = getAluno(alunoId);
+        aluno = getAluno(alunoId);
         const catLabel = aluno ? CATEGORIES[categoria] : '';
         if (aluno) { if (!aluno.aulasFeitas[categoria]) aluno.aulasFeitas[categoria] = 0; aluno.aulasFeitas[categoria] = Math.min(aluno.aulasFeitas[categoria] + 1, aluno.totalAulas[categoria]||20); await dbUpdateAluno(alunoId, { aulasFeitas: aluno.aulasFeitas }); }
 
